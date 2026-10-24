@@ -1,0 +1,41 @@
+{
+  "common": {
+    "appName": "ਸਰਕੁਲੋ",
+    "demoMode": "ਡੈਮੋ ਮੋਡ",
+    "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+    "error": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ",
+    "retry": "ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "save": "ਸੁਰੱਖਿਅਤ ਕਰੋ",
+    "demoDataNotice": "⚠️ ਡੈਮੋ ਡੇਟਾ — ਕੇਵਲ ਪ੍ਰਦਰਸ਼ਨ ਲਈ",
+    "yes": "ਹਾਂ",
+    "no": "ਨਹੀਂ"
+  },
+  "auth": {
+    "welcome": "ਸਰਕੁਲੋ ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
+    "tagline": "ਕਚਰੇ ਨੂੰ ਇੱਕ ਸਾਧਨ ਬਣਾਉਣਾ",
+    "login": "ਲੌਗ ਇਨ",
+    "register": "ਰਜਿਸਟਰ",
+    "signOut": "ਸਾਈਨ ਆਉਟ"
+  },
+  "roles": {
+    "household": "ਘਰ",
+    "formal_collector": "ਕੂੜਾ ਇਕੱਠਾ ਕਰਨ ਵਾਲਾ",
+    "informal_picker": "ਕੂੜਾ ਚੁੱਕਣ ਵਾਲਾ",
+    "municipal_admin": "ਨਗਰ ਪ੍ਰਬੰਧਕ"
+  },
+  "game": {
+    "title": "ਵੰਡ ਖੇਡ",
+    "instruction": "ਹਰ ਵਸਤੂ ਲਈ ਸਹੀ ਡੱਬਾ ਚੁਣੋ",
+    "score": "ਸਕੋਰ",
+    "correct": "ਸਹੀ!",
+    "incorrect": "ਗਲਤ",
+    "restart": "ਦੁਬਾਰਾ ਖੇਡੋ",
+    "bins": {
+      "wet": "ਗਿੱਲਾ ਕੂੜਾ",
+      "dry": "ਸੁੱਕਾ ਕੂੜਾ",
+      "hazardous": "ਖਤਰਨਾਕ"
+    }
+  }
+}

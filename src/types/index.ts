@@ -34,7 +34,12 @@ export interface Household {
   wasteZone: string;
   collectionDays: string[];
   totalMembers: number;
+  memberCount?: number;
+  ward?: string;
+  isSegregating?: boolean;
   rewardPoints: number;
+  segregationScore?: number;
+  createdAt?: string;
 }
 
 // Collection
@@ -66,6 +71,8 @@ export interface CollectionRecord {
 }
 
 // Recycling
+export type MaterialCategory = string;
+
 export type RecyclingRequestStatus =
   | 'draft' | 'open' | 'accepted' | 'en_route'
   | 'collected' | 'payment_pending' | 'completed'
@@ -74,22 +81,26 @@ export type RecyclingRequestStatus =
 export interface RecyclingRequest {
   id: string;
   householdId: string;
-  householdName: string;
-  locality: string;
+  householdName?: string;
+  locality?: string;
   materialCategory: string;
   approximateQuantityKg: number;
-  unit: string;
+  unit?: string;
+  quantityUnit?: string;
   estimatedPriceMin: number;
   estimatedPriceMax: number;
   agreedPrice?: number;
-  currency: string;
+  currency?: string;
   status: RecyclingRequestStatus;
   pickupAddress: string;
-  pickupWindowStart: string;
-  pickupWindowEnd: string;
+  pickupWindowStart?: string;
+  pickupWindowEnd?: string;
+  preferredPickupWindow?: string;
+  notes?: string;
   photoUrl?: string;
   assignedPickerId?: string;
   assignedPickerName?: string;
+  isDemoData?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -125,14 +136,17 @@ export type ComplaintCategory =
 export interface Complaint {
   id: string;
   referenceNumber: string;
-  submittedBy: string;
-  submitterName: string;
-  category: ComplaintCategory;
+  submittedBy?: string;
+  submitterName?: string;
+  householdId?: string;
+  userId?: string;
+  category: string;
   description: string;
   locality: string;
   address?: string;
   photoUrl?: string;
   status: ComplaintStatus;
+  isDemoData?: boolean;
   createdAt: string;
   updatedAt: string;
   resolvedAt?: string;
@@ -160,12 +174,16 @@ export interface RecyclingBuyer {
   id: string;
   name: string;
   isVerified: boolean;
-  verificationNote: string;
+  verificationNote?: string;
   acceptedMaterials: string[];
-  indicativeRates: { material: string; ratePerKg: number; currency: string }[];
-  ratesLastUpdated: string;
-  openingHours: string;
+  indicativeRates?: { material: string; ratePerKg: number; currency: string }[];
+  priceListPerKg?: Record<string, number>;
+  ratesLastUpdated?: string;
+  openingHours?: string;
+  operatingHours?: string;
   phone?: string;
+  rating?: number;
+  contactPerson?: string;
   address: string;
   locality: string;
   latitude?: number;
@@ -188,17 +206,23 @@ export interface AppNotification {
 // Events
 export interface VolunteerEvent {
   id: string;
-  title: string;
+  title?: string;
+  name?: string;
+  type?: string;
   description: string;
   locality: string;
-  address: string;
-  eventDate: string;
+  address?: string;
+  meetingPoint?: string;
+  eventDate?: string;
+  date?: string;
   startTime: string;
   endTime?: string;
-  organizer: string;
+  organizer?: string;
+  organiser?: string;
   maxParticipants?: number;
   registeredCount: number;
   isRegistered?: boolean;
+  rewardPoints?: number;
   latitude?: number;
   longitude?: number;
 }
