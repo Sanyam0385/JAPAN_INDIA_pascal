@@ -1,0 +1,44 @@
+{
+  "cityName": "General Municipality",
+  "name": "General Municipality",
+  "municipalName": "Local Municipal Body",
+  "wardName": "Standard Ward",
+  "cityCode": "generic",
+  "isGeneric": true,
+  "notice": "Your city isn't configured yet, so general segregation rules are shown.",
+  "bins": [
+    {
+      "key": "wet",
+      "label": "Wet Waste",
+      "localLabel": "Wet / Organic Waste",
+      "colorHex": "#2E7D32",
+      "accepts": ["Food scraps", "Fruit & vegetable peels", "Cooked food", "Coffee & tea waste", "Garden trimmings"],
+      "rules": ["Keep compostable wet waste unbagged", "Do not mix with plastics or glass"]
+    },
+    {
+      "key": "dry",
+      "label": "Dry Recyclables",
+      "localLabel": "Dry Recyclables",
+      "colorHex": "#1565C0",
+      "accepts": ["Paper and cardboard", "Plastic bottles and containers", "Metal cans and foil", "Glass bottles"],
+      "rules": ["Clean and dry before discarding", "Flatten boxes to save space"]
+    },
+    {
+      "key": "hazardous",
+      "label": "Domestic Hazardous",
+      "localLabel": "Hazardous & Sanitary",
+      "colorHex": "#C62828",
+      "accepts": ["Batteries", "Sanitary waste", "Paints and chemicals", "Medicines", "E-waste"],
+      "rules": ["Wrap sanitary items in paper securely", "Keep separate from dry and wet waste"]
+    }
+  ],
+  "collectionSchedule": [
+    { "day": "Monday", "category": "wet", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Tuesday", "category": "dry", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Wednesday", "category": "wet", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Thursday", "category": "dry", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Friday", "category": "wet", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Saturday", "category": "hazardous", "timeSlot": "Morning window", "notes": "Ask your local body for timings" },
+    { "day": "Sunday", "category": "dry", "timeSlot": "Morning window", "notes": "Ask your local body for timings" }
+  ]
+}

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, TextInput, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
 } from '../../src/constants';
 import { Card, Badge, DemoDataBanner } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useAppStore } from '../../src/stores/appStore';
+import type { IssueType } from '../../src/types';
 
 type StopStatus = 'completed' | 'current' | 'pending';
 
@@ -22,7 +25,7 @@ interface Stop {
   status: StopStatus;
 }
 
-const DEMO_STOPS: Stop[] = [
+const INITIAL_STOPS: Stop[] = [
   { id: 's1', houseNumber: '#42', address: '5th Cross, Koramangala 4th Block', wasteType: 'wet', timeSlot: '07:10', status: 'completed' },
   { id: 's2', houseNumber: '#17', address: '8th Main, HSR Layout Sector 2', wasteType: 'dry', timeSlot: '07:30', status: 'completed' },
   { id: 's3', houseNumber: '#89', address: '1st Cross, Indiranagar 12th Main', wasteType: 'recyclable', timeSlot: '07:55', status: 'completed' },
@@ -44,25 +47,12 @@ const WASTE_TYPE_COLORS: Record<string, string> = {
   hazardous: Colors.error,
 };
 
-const WASTE_TYPE_LABELS: Record<string, string> = {
-  wet: 'Wet',
-  dry: 'Dry',
-  recyclable: 'Recyclable',
-  hazardous: 'Hazardous',
-};
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
 function StatusBadge({ status }: { status: StopStatus }) {
+  const { t } = useTranslation();
   const configs: Record<StopStatus, { label: string; color: string; bg: string }> = {
-    completed: { label: '✓ Done', color: Colors.success, bg: Colors.successLight },
-    current: { label: '● Current', color: Colors.collectorAccent, bg: Colors.infoLight },
-    pending: { label: '○ Pending', color: Colors.textSecondary, bg: Colors.gray100 },
+    completed: { label: t('collector.done', '✓ Done'), color: Colors.success, bg: Colors.successLight },
+    current: { label: t('collector.current', '● Current'), color: Colors.collectorAccent, bg: Colors.infoLight },
+    pending: { label: t('collector.pending', '○ Pending'), color: Colors.textSecondary, bg: Colors.gray100 },
   };
   const cfg = configs[status];
   return (
@@ -74,13 +64,69 @@ function StatusBadge({ status }: { status: StopStatus }) {
 
 export default function CollectorTodayScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const user = useAuthStore(s => s.user);
+  const { createIssue } = useAppStore();
   const [onShift, setOnShift] = useState(true);
+  const [stops, setStops] = useState<Stop[]>(INITIAL_STOPS);
 
-  const completed = DEMO_STOPS.filter(s => s.status === 'completed').length;
-  const remaining = DEMO_STOPS.filter(s => s.status === 'pending').length;
-  const currentStop = DEMO_STOPS.find(s => s.status === 'current');
+  // Issue reporting modal state
+  const [issueModalVisible, setIssueModalVisible] = useState(false);
+  const [selectedIssueType, setSelectedIssueType] = useState<IssueType>('contamination');
+  const [issueStop, setIssueStop] = useState<Stop | null>(null);
+  const [issueNote, setIssueNote] = useState('');
+  const [issueSuccessMsg, setIssueSuccessMsg] = useState<string | null>(null);
+
+  const completed = stops.filter(s => s.status === 'completed').length;
+  const remaining = stops.filter(s => s.status === 'pending').length;
+  const currentStop = stops.find(s => s.status === 'current');
   const name = user?.name ?? 'Ramesh';
+
+  const getGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('collector.greetingMorning', 'Good morning');
+    if (hour < 17) return t('collector.greetingAfternoon', 'Good afternoon');
+    return t('collector.greetingEvening', 'Good evening');
+  };
+
+  const markStopCompleted = (stopId: string) => {
+    setStops(prev => {
+      const next = [...prev];
+      const idx = next.findIndex(s => s.id === stopId);
+      if (idx !== -1) {
+        next[idx] = { ...next[idx], status: 'completed' };
+        // Advance current stop
+        const nextPendingIdx = next.findIndex(s => s.status === 'pending');
+        if (nextPendingIdx !== -1) {
+          next[nextPendingIdx] = { ...next[nextPendingIdx], status: 'current' };
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleOpenIssueModal = (stop?: Stop) => {
+    setIssueStop(stop || currentStop || stops[0]);
+    setIssueNote('');
+    setIssueModalVisible(true);
+  };
+
+  const handleSubmitIssue = () => {
+    if (!issueStop) return;
+    const finalNote = issueNote.trim() || `Field exception reported at ${issueStop.houseNumber}, ${issueStop.address}`;
+    createIssue({
+      raisedByRole: 'collector',
+      raisedByName: name,
+      locality: issueStop.address.split(',')[1]?.trim() || 'Koramangala',
+      ward: 'Ward 151',
+      type: selectedIssueType,
+      note: finalNote,
+    });
+
+    setIssueModalVisible(false);
+    setIssueSuccessMsg(t('collector.issueReportedToast', { house: issueStop.houseNumber, defaultValue: `Issue logged for ${issueStop.houseNumber}. Forwarded to Municipal Operations Desk.` }));
+    setTimeout(() => setIssueSuccessMsg(null), 4000);
+  };
 
   return (
     <ScrollView
@@ -97,14 +143,14 @@ export default function CollectorTodayScreen() {
         style={[styles.header, { paddingTop: insets.top + Spacing[4] }]}
       >
         <Text style={styles.greeting}>{getGreeting()}, {name.split(' ')[0]} 👋</Text>
-        <Text style={styles.headerSub}>Municipal Collector · BBMP Zone 3</Text>
+        <Text style={styles.headerSub}>{t('collector.subTitle')}</Text>
         <View style={styles.vehicleRow}>
           <Ionicons name="bus-outline" size={16} color="rgba(255,255,255,0.85)" />
-          <Text style={styles.vehicleText}>Vehicle: KA-01-M-2234 (Demo)</Text>
+          <Text style={styles.vehicleText}>{t('collector.vehicleInfo')}</Text>
         </View>
         <View style={styles.shiftRow}>
           <View style={[styles.shiftIndicator, { backgroundColor: onShift ? Colors.success : Colors.error }]} />
-          <Text style={styles.shiftLabel}>{onShift ? 'On Shift' : 'Off Shift'}</Text>
+          <Text style={styles.shiftLabel}>{onShift ? t('collector.activeRoute') : t('collector.offShift')}</Text>
           <Switch
             value={onShift}
             onValueChange={setOnShift}
@@ -112,39 +158,57 @@ export default function CollectorTodayScreen() {
             thumbColor={onShift ? Colors.success : Colors.gray300}
             style={styles.shiftSwitch}
           />
-          <Text style={styles.demoOnly}>(Demo only)</Text>
         </View>
       </LinearGradient>
 
       <View style={styles.body}>
-        <DemoDataBanner message="All stops, stats, and vehicle info are demo data only." />
+        <DemoDataBanner />
+
+        {/* Glove-friendly Primary Action: Report Field Issue */}
+        <TouchableOpacity
+          style={styles.gloveIssueBtn}
+          onPress={() => handleOpenIssueModal()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="warning" size={24} color="#D32F2F" />
+          <View style={styles.gloveIssueInfo}>
+            <Text style={styles.gloveIssueTitle}>{t('collector.reportFieldIssue')}</Text>
+            <Text style={styles.gloveIssueSub}>{t('collector.reportFieldIssueSub')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#D32F2F" />
+        </TouchableOpacity>
+
+        {issueSuccessMsg && (
+          <View style={styles.successToast}>
+            <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
+            <Text style={styles.successToastText}>{issueSuccessMsg}</Text>
+          </View>
+        )}
 
         {/* Stats Card */}
         <Card style={styles.statsCard}>
-          <Text style={styles.sectionTitle}>Today's Stats</Text>
-          <Text style={styles.demoLabel}>⚠️ DEMO FIGURES</Text>
+          <Text style={styles.sectionTitle}>{t('collector.routeProgress')}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Total Stops</Text>
+              <Text style={styles.statValue}>{stops.length}</Text>
+              <Text style={styles.statLabel}>{t('collector.totalStops')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: Colors.success }]}>{completed}</Text>
-              <Text style={styles.statLabel}>Completed</Text>
+              <Text style={styles.statLabel}>{t('collector.completedStops')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: Colors.warning }]}>{remaining}</Text>
-              <Text style={styles.statLabel}>Remaining</Text>
+              <Text style={styles.statLabel}>{t('collector.remaining')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: Colors.collectorAccent }]}>180</Text>
-              <Text style={styles.statLabel}>kg Collected*</Text>
+              <Text style={styles.statLabel}>{t('collector.kgCollected')}</Text>
             </View>
           </View>
-          <Text style={styles.estimatedNote}>* Estimated — Demo only</Text>
         </Card>
 
         {/* Current Stop */}
@@ -152,9 +216,9 @@ export default function CollectorTodayScreen() {
           <Card style={styles.currentCard}>
             <View style={styles.currentHeader}>
               <Ionicons name="navigate" size={18} color={Colors.collectorAccent} />
-              <Text style={styles.currentTitle}>Next Stop</Text>
+              <Text style={styles.currentTitle}>{t('collector.nextUp')}</Text>
               <View style={[styles.currentBadge, { backgroundColor: Colors.infoLight }]}>
-                <Text style={[styles.currentBadgeText, { color: Colors.collectorAccent }]}>Current</Text>
+                <Text style={[styles.currentBadgeText, { color: Colors.collectorAccent }]}>{t('collector.currentStop')}</Text>
               </View>
             </View>
             <Text style={styles.currentAddress}>
@@ -163,28 +227,43 @@ export default function CollectorTodayScreen() {
             <View style={styles.currentMeta}>
               <View style={[styles.wasteBadge, { backgroundColor: WASTE_TYPE_COLORS[currentStop.wasteType] + '20' }]}>
                 <Text style={[styles.wasteBadgeText, { color: WASTE_TYPE_COLORS[currentStop.wasteType] }]}>
-                  {WASTE_TYPE_LABELS[currentStop.wasteType]} waste
+                  {t(`materials.${currentStop.wasteType}_waste`, { defaultValue: currentStop.wasteType })} {t('collector.waste')}
                 </Text>
               </View>
               <Text style={styles.timeSlotText}>🕐 {currentStop.timeSlot}</Text>
             </View>
-            <TouchableOpacity style={styles.navigateBtn} activeOpacity={0.8}>
-              <Ionicons name="map" size={16} color={Colors.surface} />
-              <Text style={styles.navigateBtnText}>Open Navigation (Demo)</Text>
-            </TouchableOpacity>
+
+            <View style={styles.currentActionRow}>
+              <TouchableOpacity
+                style={styles.completeStopBtn}
+                onPress={() => markStopCompleted(currentStop.id)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="checkmark-done" size={20} color="#FFFFFF" />
+                <Text style={styles.completeStopBtnText}>{t('collector.markDone')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.flagStopBtn}
+                onPress={() => handleOpenIssueModal(currentStop)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="flag-outline" size={18} color="#D32F2F" />
+                <Text style={styles.flagStopBtnText}>{t('collector.flagIssue')}</Text>
+              </TouchableOpacity>
+            </View>
           </Card>
         )}
 
         {/* All Stops */}
-        <Text style={styles.sectionTitle}>All Stops Today</Text>
-        <Text style={styles.demoLabel}>⚠️ Demo addresses — not real routes</Text>
-        {DEMO_STOPS.map((stop, index) => (
+        <Text style={styles.sectionTitle}>{t('collector.fullDailyRoute', { count: stops.length, defaultValue: `Full Daily Route (${stops.length} households)` })}</Text>
+        {stops.map((stop, index) => (
           <TouchableOpacity
             key={stop.id}
             style={[
               styles.stopRow,
               stop.status === 'current' && styles.stopRowCurrent,
             ]}
+            onPress={() => stop.status !== 'completed' && markStopCompleted(stop.id)}
             activeOpacity={0.7}
           >
             <View style={styles.stopNumber}>
@@ -198,7 +277,7 @@ export default function CollectorTodayScreen() {
               <View style={styles.stopMeta}>
                 <View style={[styles.wasteBadge, { backgroundColor: WASTE_TYPE_COLORS[stop.wasteType] + '20' }]}>
                   <Text style={[styles.wasteBadgeText, { color: WASTE_TYPE_COLORS[stop.wasteType] }]}>
-                    {WASTE_TYPE_LABELS[stop.wasteType]}
+                    {t(`materials.${stop.wasteType}_waste`, { defaultValue: stop.wasteType })}
                   </Text>
                 </View>
                 <Text style={styles.stopTime}>{stop.timeSlot}</Text>
@@ -207,14 +286,86 @@ export default function CollectorTodayScreen() {
             <StatusBadge status={stop.status} />
           </TouchableOpacity>
         ))}
-
-        <View style={styles.footerNote}>
-          <Ionicons name="warning-outline" size={14} color={Colors.warning} />
-          <Text style={styles.footerNoteText}>
-            Demo data — real routes loaded from municipal backend
-          </Text>
-        </View>
       </View>
+
+      {/* Field Issue Reporting Modal (Glove-Friendly) */}
+      <Modal
+        visible={issueModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIssueModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleRow}>
+                <Ionicons name="warning" size={22} color="#D32F2F" />
+                <Text style={styles.modalTitle}>{t('collector.reportIssueModalTitle')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIssueModalVisible(false)} style={styles.modalCloseBtn}>
+                <Ionicons name="close" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSub}>
+              {t('collector.loggingFor')} <Text style={styles.boldText}>{issueStop?.houseNumber} · {issueStop?.address}</Text>
+            </Text>
+
+            <Text style={styles.issueSectionLabel}>{t('collector.selectIssueType')}</Text>
+            <View style={styles.issueOptionsGrid}>
+              {[
+                { type: 'contamination', label: t('collector.segregationIssue', 'Contaminated Waste'), icon: 'trash-bin-outline' },
+                { type: 'missed_pickup', label: t('complaint.categories.missed_pickup', 'Gate Locked / No Answer'), icon: 'lock-closed-outline' },
+                { type: 'other', label: t('common.details', 'Road Blocked / Access'), icon: 'construct-outline' },
+                { type: 'hazardous', label: t('materials.hazardous', 'Hazardous Spill'), icon: 'warning-outline' },
+              ].map((opt, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.gloveOptionBtn,
+                    selectedIssueType === opt.type && styles.gloveOptionBtnActive,
+                  ]}
+                  onPress={() => setSelectedIssueType(opt.type as IssueType)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={opt.icon as any}
+                    size={20}
+                    color={selectedIssueType === opt.type ? Colors.primary : Colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.gloveOptionText,
+                      selectedIssueType === opt.type && styles.gloveOptionTextActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.issueSectionLabel}>{t('collector.additionalNotes')}</Text>
+            <TextInput
+              style={styles.notesInput}
+              placeholder={t('collector.notesPlaceholder')}
+              placeholderTextColor={Colors.textTertiary}
+              value={issueNote}
+              onChangeText={setIssueNote}
+              multiline
+            />
+
+            <TouchableOpacity
+              style={styles.submitIssueBtn}
+              onPress={handleSubmitIssue}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="send" size={18} color="#FFFFFF" />
+              <Text style={styles.submitIssueBtnText}>{t('collector.submitIssue')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -274,18 +425,52 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   body: { padding: Spacing[4], gap: Spacing[3] },
+  gloveIssueBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderColor: '#FFCDD2',
+    borderWidth: 1.5,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[3],
+    minHeight: 56,
+    gap: Spacing[3],
+    ...Shadow.sm,
+  },
+  gloveIssueInfo: { flex: 1 },
+  gloveIssueTitle: {
+    fontSize: FontSize.base,
+    fontWeight: FontWeight.bold,
+    color: '#D32F2F',
+  },
+  gloveIssueSub: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  successToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    backgroundColor: '#E8F5E9',
+    borderColor: '#A5D6A7',
+    borderWidth: 1,
+    padding: Spacing[3],
+    borderRadius: BorderRadius.md,
+  },
+  successToastText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color: Colors.success,
+    flex: 1,
+  },
   statsCard: { padding: Spacing[4] },
   sectionTitle: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     marginBottom: Spacing[1],
-  },
-  demoLabel: {
-    fontSize: FontSize.xs,
-    color: Colors.warning,
-    fontWeight: FontWeight.semibold,
-    marginBottom: Spacing[3],
   },
   statsRow: {
     flexDirection: 'row',
@@ -308,13 +493,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: Colors.divider,
-  },
-  estimatedNote: {
-    fontSize: FontSize.xs,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
-    marginTop: Spacing[2],
-    textAlign: 'right',
   },
   currentCard: {
     padding: Spacing[4],
@@ -354,20 +532,44 @@ const styles = StyleSheet.create({
     gap: Spacing[3],
     marginBottom: Spacing[3],
   },
-  navigateBtn: {
+  currentActionRow: {
+    flexDirection: 'row',
+    gap: Spacing[2],
+    alignItems: 'center',
+  },
+  completeStopBtn: {
+    flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing[2],
-    backgroundColor: Colors.collectorAccent,
-    paddingVertical: Spacing[3],
+    backgroundColor: Colors.success,
     borderRadius: BorderRadius.md,
     minHeight: 56,
+    paddingHorizontal: Spacing[3],
   },
-  navigateBtnText: {
-    color: Colors.textInverse,
-    fontWeight: FontWeight.semibold,
+  completeStopBtnText: {
+    color: '#FFFFFF',
+    fontWeight: FontWeight.bold,
     fontSize: FontSize.base,
+  },
+  flagStopBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[1],
+    backgroundColor: '#FFEBEE',
+    borderColor: '#FFCDD2',
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    minHeight: 56,
+    paddingHorizontal: Spacing[2],
+  },
+  flagStopBtnText: {
+    color: '#D32F2F',
+    fontWeight: FontWeight.bold,
+    fontSize: FontSize.sm,
   },
   wasteBadge: {
     paddingHorizontal: Spacing[2],
@@ -435,18 +637,100 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
   },
-  footerNote: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    padding: Spacing[5],
+    gap: Spacing[3],
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[2],
-    backgroundColor: Colors.warningLight,
-    padding: Spacing[3],
+  },
+  modalTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  modalCloseBtn: { padding: Spacing[1] },
+  modalSub: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+  },
+  boldText: {
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  issueSectionLabel: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: Spacing[1],
+  },
+  issueOptionsGrid: {
+    gap: Spacing[2],
+  },
+  gloveOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[3],
+    backgroundColor: Colors.gray100,
+    paddingHorizontal: Spacing[3],
     borderRadius: BorderRadius.md,
+    minHeight: 56,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  gloveOptionBtnActive: {
+    backgroundColor: '#E8F5E9',
+    borderColor: Colors.primary,
+  },
+  gloveOptionText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    color: Colors.textPrimary,
+  },
+  gloveOptionTextActive: {
+    color: Colors.primary,
+    fontWeight: FontWeight.bold,
+  },
+  notesInput: {
+    backgroundColor: Colors.gray100,
+    borderRadius: BorderRadius.md,
+    padding: Spacing[3],
+    minHeight: 70,
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    textAlignVertical: 'top',
+  },
+  submitIssueBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    backgroundColor: '#D32F2F',
+    borderRadius: BorderRadius.md,
+    minHeight: 56,
     marginTop: Spacing[2],
   },
-  footerNoteText: {
-    fontSize: FontSize.xs,
-    color: Colors.warning,
-    flex: 1,
+  submitIssueBtnText: {
+    fontSize: FontSize.base,
+    fontWeight: FontWeight.bold,
+    color: '#FFFFFF',
   },
 });

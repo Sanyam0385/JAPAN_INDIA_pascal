@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Colors, TAB_BAR_HEIGHT, FontSize, FontWeight } from '../../src/constants';
 import { useAppStore } from '../../src/stores/appStore';
 
@@ -13,6 +14,7 @@ function TabIcon({ name, focused, color }: { name: any; focused: boolean; color:
 }
 
 export default function PickerLayout() {
+  const { t, i18n } = useTranslation();
   const unread = useAppStore(s => s.unreadNotifications);
 
   return (
@@ -38,35 +40,60 @@ export default function PickerLayout() {
       <Tabs.Screen
         name="opportunities"
         options={{
-          title: 'Marketplace',
+          title: t('tabs.marketplace', 'Marketplace'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.marketplace', 'Marketplace')}
+            </Text>
+          ),
           tabBarIcon: ({ focused, color }) => <TabIcon name="storefront" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="jobs"
         options={{
-          title: 'My Jobs',
+          title: t('tabs.myJobs', 'My Jobs'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.myJobs', 'My Jobs')}
+            </Text>
+          ),
           tabBarIcon: ({ focused, color }) => <TabIcon name="briefcase" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="buyers"
         options={{
-          title: 'Buyers',
+          title: t('tabs.buyers', 'Buyers'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.buyers', 'Buyers')}
+            </Text>
+          ),
           tabBarIcon: ({ focused, color }) => <TabIcon name="business" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="earnings"
         options={{
-          title: 'Earnings',
+          title: t('tabs.earnings', 'Earnings'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.earnings', 'Earnings')}
+            </Text>
+          ),
           tabBarIcon: ({ focused, color }) => <TabIcon name="cash" focused={focused} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile', 'Profile'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.profile', 'Profile')}
+            </Text>
+          ),
           tabBarIcon: ({ focused, color }) => (
             <View>
               <TabIcon name="person" focused={focused} color={color} />
@@ -77,6 +104,13 @@ export default function PickerLayout() {
               )}
             </View>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="navigate/[jobId]"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
         }}
       />
     </Tabs>
@@ -93,4 +127,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  tabLabelText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+    textAlign: 'center',
+  },
 });

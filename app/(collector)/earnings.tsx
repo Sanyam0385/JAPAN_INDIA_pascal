@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
 } from '../../src/constants';
@@ -38,6 +39,7 @@ const BAR_MAX_HEIGHT = 100;
 
 export default function CollectorEarningsScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <ScrollView
@@ -50,39 +52,39 @@ export default function CollectorEarningsScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing[4] }]}>
-        <Text style={styles.headerTitle}>My Earnings</Text>
-        <Text style={styles.headerSub}>Municipal payroll — BBMP Zone 3</Text>
+        <Text style={styles.headerTitle}>{t('collector.myEarnings')}</Text>
+        <Text style={styles.headerSub}>{t('collector.payrollSub')}</Text>
       </View>
 
       <View style={styles.body}>
-        <DemoDataBanner message="All figures are demo estimates only. Actual earnings are set by BBMP payroll." />
+        <DemoDataBanner message={t('collector.payrollBanner')} />
 
         {/* Monthly summary */}
         <Card style={styles.summaryCard}>
-          <Text style={styles.demoLabel}>⚠️ DEMO ESTIMATES ONLY</Text>
+          <Text style={styles.demoLabel}>{t('collector.estimatedDisbursements')}</Text>
           <View style={styles.summaryRow}>
             <View style={styles.summaryCol}>
-              <Text style={styles.summaryMonth}>This Month</Text>
+              <Text style={styles.summaryMonth}>{t('collector.thisMonth')}</Text>
               <Text style={styles.summaryAmount}>₹18,400</Text>
-              <Text style={styles.summaryNote}>Oct 2026 (Demo)</Text>
+              <Text style={styles.summaryNote}>Oct 2026</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryCol}>
-              <Text style={styles.summaryMonth}>Last Month</Text>
+              <Text style={styles.summaryMonth}>{t('collector.lastMonth')}</Text>
               <Text style={[styles.summaryAmount, { color: Colors.textSecondary }]}>₹16,200</Text>
-              <Text style={styles.summaryNote}>Sep 2026 (Demo)</Text>
+              <Text style={styles.summaryNote}>Sep 2026</Text>
             </View>
           </View>
         </Card>
 
         {/* Breakdown */}
         <Card style={styles.breakdownCard}>
-          <Text style={styles.sectionTitle}>This Month Breakdown</Text>
-          <Text style={styles.estimatedNote}>Estimated — Demo only</Text>
+          <Text style={styles.sectionTitle}>{t('collector.thisMonthBreakdown')}</Text>
+          <Text style={styles.estimatedNote}>{t('collector.estimatedDemoOnly')}</Text>
           {[
-            { label: 'Base Pay', amount: 14400, color: Colors.collectorAccent },
-            { label: 'Attendance Bonus', amount: 2400, color: Colors.success },
-            { label: 'Performance Bonus', amount: 1600, color: Colors.warning },
+            { label: t('collector.basePay'), amount: 14400, color: Colors.collectorAccent },
+            { label: t('collector.attendanceBonus'), amount: 2400, color: Colors.success },
+            { label: t('collector.performanceBonus'), amount: 1600, color: Colors.warning },
           ].map(item => (
             <View key={item.label} style={styles.breakdownRow}>
               <View style={[styles.breakdownDot, { backgroundColor: item.color }]} />
@@ -96,8 +98,8 @@ export default function CollectorEarningsScreen() {
 
         {/* Weekly KG bar chart */}
         <Card style={styles.chartCard}>
-          <Text style={styles.sectionTitle}>This Week — kg Collected</Text>
-          <Text style={styles.estimatedNote}>Estimated · Demo data</Text>
+          <Text style={styles.sectionTitle}>{t('collector.thisWeekKg')}</Text>
+          <Text style={styles.estimatedNote}>{t('collector.estimatedDemoOnly')}</Text>
           <View style={styles.barsRow}>
             {WEEKLY_BARS.map(bar => {
               const heightPct = bar.kg / MAX_KG;
@@ -124,8 +126,8 @@ export default function CollectorEarningsScreen() {
         </Card>
 
         {/* Recent Payments */}
-        <Text style={styles.sectionTitle}>Recent Payments</Text>
-        <Text style={styles.estimatedNote}>⚠️ Demo figures — not real payslips</Text>
+        <Text style={styles.sectionTitle}>{t('profile.history')}</Text>
+        <Text style={styles.estimatedNote}>⚠️ {t('collector.estimatedDemoOnly')}</Text>
         {DEMO_PAYMENTS.map(p => (
           <View key={p.id} style={styles.paymentRow}>
             <View style={styles.paymentIcon}>
@@ -144,7 +146,7 @@ export default function CollectorEarningsScreen() {
         {/* Footer note */}
         <View style={styles.footerNote}>
           <Text style={styles.footerNoteText}>
-            💡 Payment is calculated by municipal payroll. Contact your supervisor or the BBMP HR office for queries about your actual earnings.
+            💡 {t('collector.wageNote')}
           </Text>
         </View>
       </View>

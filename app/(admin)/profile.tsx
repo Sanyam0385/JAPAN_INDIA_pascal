@@ -6,22 +6,24 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/stores/authStore';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, TAB_BAR_HEIGHT,
 } from '../../src/constants';
-import { Card, Badge, DemoDataBanner } from '../../src/components/ui';
+import { Card, Badge, DemoDataBanner, LanguageSelectorButton } from '../../src/components/ui';
 
 export default function AdminProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { user, signOut, isDemoMode } = useAuthStore();
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Sign out of municipal administrative session?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('auth.signOut'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('auth.signOut'),
         style: 'destructive',
         onPress: async () => {
           await signOut();
@@ -46,6 +48,7 @@ export default function AdminProfileScreen() {
             <Text style={styles.userRole}>Executive Officer · SWM Division</Text>
             <Text style={styles.userLocality}>Bruhat Bengaluru Mahanagara Palike (BBMP)</Text>
           </View>
+          <LanguageSelectorButton variant="icon" />
         </View>
       </View>
 
@@ -57,7 +60,7 @@ export default function AdminProfileScreen() {
 
         {/* Administrative Jurisdiction Card */}
         <Card style={styles.jurisdictionCard}>
-          <Text style={styles.cardHeading}>Municipal Jurisdiction</Text>
+          <Text style={styles.cardHeading}>{t('admin.wardConfiguration')}</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Zone:</Text>
             <Text style={styles.val}>South Zone, Bengaluru</Text>
@@ -78,20 +81,14 @@ export default function AdminProfileScreen() {
 
         {/* System Settings & Compliance */}
         <Card style={styles.settingsCard}>
-          <Text style={styles.cardHeading}>Data & Verification</Text>
+          <Text style={styles.cardHeading}>{t('admin.settings')}</Text>
           <View style={styles.settingItem}>
-            <Ionicons name="cloud-done" size={20} color={Colors.primary} />
+            <Ionicons name="language" size={20} color={Colors.adminAccent} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Supabase Realtime Sync</Text>
-              <Text style={styles.settingSub}>Connected in Demo Adapter Mode</Text>
+              <Text style={styles.settingTitle}>{t('profile.language')}</Text>
+              <Text style={styles.settingSub}>{t('profile.fullTranslationsActive')}</Text>
             </View>
-          </View>
-          <View style={styles.settingItem}>
-            <Ionicons name="document-text" size={20} color={Colors.adminAccent} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Export SWM Monthly Audit</Text>
-              <Text style={styles.settingSub}>Generates standard Ministry CSV ledger</Text>
-            </View>
+            <LanguageSelectorButton variant="pill" />
           </View>
         </Card>
 
@@ -102,14 +99,14 @@ export default function AdminProfileScreen() {
             onPress={() => router.push('/(auth)/demo-select')}
           >
             <Ionicons name="swap-horizontal" size={20} color={Colors.adminAccent} />
-            <Text style={styles.switchRoleText}>Switch Demo Role (Judge Quick Switch)</Text>
+            <Text style={styles.switchRoleText}>{t('profile.switchRole')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleSignOut}>
           <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-          <Text style={styles.logoutText}>Sign Out of Administrator Account</Text>
+          <Text style={styles.logoutText}>{t('auth.signOut')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

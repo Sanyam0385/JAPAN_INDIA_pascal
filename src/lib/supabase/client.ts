@@ -6,12 +6,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://demo-placeholder.supabase.co';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'demo-anon-key-placeholder';
 
-export const isSupabaseConfigured = () => {
+export const isSupabaseConfigured = (): boolean => {
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
   return (
-    process.env.EXPO_PUBLIC_SUPABASE_URL !== undefined &&
-    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== undefined &&
-    process.env.EXPO_PUBLIC_SUPABASE_URL.includes('.supabase.co')
+    typeof url === 'string' &&
+    typeof key === 'string' &&
+    url.length > 0 &&
+    key.length > 0 &&
+    !url.includes('your-project-id') &&
+    !url.includes('demo-placeholder') &&
+    (url.startsWith('https://') || url.startsWith('http://'))
   );
+};
+
+export const isBackendEnabled = (): boolean => {
+  return isSupabaseConfigured();
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

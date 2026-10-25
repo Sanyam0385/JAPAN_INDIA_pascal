@@ -5,3 +5,4 @@ export { Badge } from './Badge';
 export { LoadingState, EmptyState, ErrorState, OfflineBanner, DemoDataBanner } from './StateComponents';
 export { Header, BrandHeader } from './Header';
 export { Screen } from './Screen';
+export { LanguageSelectorButton } from './LanguageSelectorButton';

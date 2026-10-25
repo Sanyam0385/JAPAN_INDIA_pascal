@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.circulo.demo"
+      "bundleIdentifier": "app.circulo.demo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "CIRCULO uses your location to fill in your locality, show nearby pickups and share live location during a collection"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +22,11 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.circulo.demo"
+      "package": "app.circulo.demo",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +39,12 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#1B5E20"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CIRCULO uses your location to fill in your locality, show nearby pickups and share live location during a collection"
         }
       ]
     ],

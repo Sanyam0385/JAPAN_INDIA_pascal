@@ -3,11 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Colors, FontSize, TAB_BAR_HEIGHT } from '../../src/constants';
 import { useAppStore } from '../../src/stores/appStore';
 
 export default function CollectorLayout() {
   const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
   const unreadNotifications = useAppStore(s => s.unreadNotifications);
 
   return (
@@ -33,7 +35,12 @@ export default function CollectorLayout() {
       <Tabs.Screen
         name="today"
         options={{
-          title: 'Today',
+          title: t('tabs.today', 'Today'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.today', 'Today')}
+            </Text>
+          ),
           tabBarIcon: ({ color, size }: { color: any; size: number }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -42,7 +49,12 @@ export default function CollectorLayout() {
       <Tabs.Screen
         name="route"
         options={{
-          title: 'Route',
+          title: t('tabs.route', 'Route'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.route', 'Route')}
+            </Text>
+          ),
           tabBarIcon: ({ color, size }: { color: any; size: number }) => (
             <Ionicons name="map-outline" size={size} color={color} />
           ),
@@ -51,7 +63,12 @@ export default function CollectorLayout() {
       <Tabs.Screen
         name="tasks"
         options={{
-          title: 'Tasks',
+          title: t('tabs.tasks', 'Tasks'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.tasks', 'Tasks')}
+            </Text>
+          ),
           tabBarIcon: ({ color, size }: { color: any; size: number }) => (
             <Ionicons name="list" size={size} color={color} />
           ),
@@ -60,7 +77,12 @@ export default function CollectorLayout() {
       <Tabs.Screen
         name="earnings"
         options={{
-          title: 'Earnings',
+          title: t('tabs.earnings', 'Earnings'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.earnings', 'Earnings')}
+            </Text>
+          ),
           tabBarIcon: ({ color, size }: { color: any; size: number }) => (
             <Ionicons name="cash" size={size} color={color} />
           ),
@@ -69,7 +91,12 @@ export default function CollectorLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile', 'Profile'),
+          tabBarLabel: ({ color }) => (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabelText, { color }]}>
+              {t('tabs.profile', 'Profile')}
+            </Text>
+          ),
           tabBarIcon: ({ color, size }: { color: any; size: number }) => (
             <View>
               <Ionicons name="person" size={size} color={color} />
@@ -105,5 +132,10 @@ const styles = StyleSheet.create({
     color: Colors.textInverse,
     fontSize: 9,
     fontWeight: '700',
+  },
+  tabLabelText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

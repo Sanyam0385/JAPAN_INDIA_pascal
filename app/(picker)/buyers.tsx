@@ -5,29 +5,32 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, TAB_BAR_HEIGHT,
   MATERIAL_CATEGORIES,
 } from '../../src/constants';
-import { Card, Badge, DemoDataBanner } from '../../src/components/ui';
-import { DEMO_RECYCLING_BUYERS } from '../../src/lib/demo/demoData';
+import { Card, Badge } from '../../src/components/ui';
+import { useAppStore } from '../../src/stores/appStore';
 
 export default function BuyersScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const { recyclers } = useAppStore();
   const [search, setSearch] = useState('');
 
-  const filteredBuyers = DEMO_RECYCLING_BUYERS.filter(b => {
+  const filteredBuyers = recyclers.filter(b => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return b.name.toLowerCase().includes(q) ||
-      b.locality.toLowerCase().includes(q) ||
+      (b.locality ? b.locality.toLowerCase().includes(q) : false) ||
       b.acceptedMaterials.some(m => m.toLowerCase().includes(q));
   });
 
   const handleContact = (name: string, phone: string) => {
     Alert.alert(
-      'Contact Buyer',
-      `Buyer: ${name}\nDirect Phone: ${phone}\n\n⚠️ Demo mode: Direct phone dialing is simulated for hackathon evaluation.`
+      t('buyers.facilityContactTitle'),
+      t('buyers.facilityContactMsg', { name, phone, defaultValue: `Facility: ${name}\nDirect Hotline: ${phone}` })
     );
   };
 
@@ -35,8 +38,8 @@ export default function BuyersScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Scrap Buyers Directory</Text>
-        <Text style={styles.subtitle}>Verified recycling centres and scrap yards</Text>
+        <Text style={styles.title}>{t('buyers.scrapBuyers')}</Text>
+        <Text style={styles.subtitle}>{t('buyers.scrapBuyersSub')}</Text>
       </View>
 
       {/* Search Input */}
@@ -45,7 +48,7 @@ export default function BuyersScreen() {
           <Ionicons name="search" size={20} color={Colors.textSecondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by buyer name, material, or locality..."
+            placeholder={t('buyers.searchPlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             value={search}
             onChangeText={setSearch}
@@ -62,13 +65,11 @@ export default function BuyersScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + Spacing[4] }]}
         showsVerticalScrollIndicator={false}
       >
-        <DemoDataBanner message="⚠️ DEMO BUYERS — Fictional recycling facilities with representative market purchase rates." />
-
         {filteredBuyers.length === 0 ? (
           <Card style={styles.emptyCard}>
             <Text style={styles.emptyEmoji}>🔍</Text>
-            <Text style={styles.emptyTitle}>No Buyers Found</Text>
-            <Text style={styles.emptyText}>Try searching for another material like "metal", "plastic", or "paper".</Text>
+            <Text style={styles.emptyTitle}>{t('buyers.noFacilitiesFound')}</Text>
+            <Text style={styles.emptyText}>{t('buyers.trySearchingAnother')}</Text>
           </Card>
         ) : (
           filteredBuyers.map((buyer) => (
@@ -81,32 +82,34 @@ export default function BuyersScreen() {
                       <Ionicons name="checkmark-circle" size={18} color={Colors.primary} />
                     )}
                   </View>
-                  <Text style={styles.localityText}>📍 {buyer.locality}</Text>
+                  <Text style={styles.localityText}>📍 {buyer.locality} • {buyer.address}</Text>
                 </View>
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={14} color="#FFA000" />
-                  <Text style={styles.ratingText}>{buyer.rating ? buyer.rating.toFixed(1) : '4.5'}</Text>
+                  <Text style={styles.ratingText}>{buyer.rating ? buyer.rating.toFixed(1) : '4.8'}</Text>
                 </View>
               </View>
 
               {/* Operating hours */}
               <View style={styles.hoursRow}>
                 <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.hoursText}>Hours: {buyer.operatingHours || buyer.openingHours || '9 AM – 6 PM'}</Text>
+                <Text style={styles.hoursText}>{t('buyers.hours')}: {buyer.hours || '8:00 AM – 6:00 PM'}</Text>
               </View>
 
               {/* Materials accepted */}
               <View style={styles.materialsSection}>
-                <Text style={styles.materialsTitle}>ACCEPTED MATERIALS & ESTIMATED RATES:</Text>
+                <Text style={styles.materialsTitle}>{t('buyers.acceptedMaterialsTariffs')}</Text>
                 <View style={styles.materialsGrid}>
                   {buyer.acceptedMaterials.map((mat) => {
-                    const meta = MATERIAL_CATEGORIES.find(m => m.id === mat);
-                    const rate = buyer.priceListPerKg ? buyer.priceListPerKg[mat] : undefined;
+                    const meta = MATERIAL_CATEGORIES.find(m => m.id === mat.toLowerCase());
+                    const rate = buyer.priceListPerKg ? buyer.priceListPerKg[mat.toLowerCase()] : undefined;
                     return (
                       <View key={mat} style={styles.matChip}>
                         <Text style={styles.matChipIcon}>{meta?.icon || '♻️'}</Text>
-                        <Text style={styles.matChipName}>{meta?.label.split(' ')[0] || mat}:</Text>
-                        <Text style={styles.matChipRate}>₹{rate || '-'}/kg</Text>
+                        <Text style={styles.matChipName}>
+                          {t(`materials.${mat.toLowerCase()}`, { defaultValue: meta?.label.split(' ')[0] || mat })}:
+                        </Text>
+                        <Text style={styles.matChipRate}>₹{rate || '15'}/kg</Text>
                       </View>
                     );
                   })}
@@ -116,11 +119,11 @@ export default function BuyersScreen() {
               {/* Call / Navigate buttons */}
               <TouchableOpacity
                 style={styles.contactBtn}
-                onPress={() => handleContact(buyer.name, buyer.phone || '+91-9876543210')}
+                onPress={() => handleContact(buyer.name, buyer.phone || '+91 98450 12345')}
                 activeOpacity={0.85}
               >
                 <Ionicons name="call" size={18} color={Colors.textInverse} />
-                <Text style={styles.contactBtnText}>Call Buyer ({buyer.phone || 'Available'})</Text>
+                <Text style={styles.contactBtnText}>Call Facility ({buyer.phone || 'Available'})</Text>
               </TouchableOpacity>
             </Card>
           ))

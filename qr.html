@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CIRCULO Expo Go QR Codes</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0B2912;
+      color: #F8FAFC;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justifyContent: center;
+      padding: 32px 16px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #34D399;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: #10B981;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #10B981;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    p.sub {
+      color: #A7F3D0;
+      font-size: 16px;
+      margin-bottom: 32px;
+      text-align: center;
+      max-width: 560px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      max-width: 780px;
+      width: 100%;
+    }
+    .card {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+    .tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+    .tag-tunnel { background: #ECFDF5; color: #047857; }
+    .tag-lan { background: #EFF6FF; color: #1D4ED8; }
+    h2 { font-size: 20px; font-weight: 800; margin-bottom: 16px; color: #111827; }
+    .qr-img {
+      width: 260px;
+      height: 260px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 18px;
+      image-rendering: pixelated;
+    }
+    .url-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      color: #1E293B;
+      word-break: break-all;
+      background: #F1F5F9;
+      padding: 10px 14px;
+      border-radius: 10px;
+      width: 100%;
+      margin-bottom: 14px;
+      border: 1px solid #E2E8F0;
+    }
+    .hint {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .actions {
+      margin-top: 32px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #10B981;
+      color: #FFFFFF;
+      padding: 14px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 16px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover { background: #059669; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="badge">
+    <div class="pulse-dot"></div>
+    METRO BUNDLER ONLINE · PORT 8081
+  </div>
+  <h1>CIRCULO Expo Go QR Codes</h1>
+  <p class="sub">Open the Expo Go app on your Android or iOS phone and point your camera at the QR code below.</p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="tag tag-tunnel">Recommended · Any Network</span>
+      <h2>Tunnel (Ngrok)</h2>
+      <img class="qr-img" src="data:image/png;base64,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" alt="Tunnel QR Code" />
+      <div class="url-box">exp://m3f7npm-anonymous-8081.exp.direct</div>
+      <p class="hint">Scan with <strong>Expo Go</strong> or default <strong>Camera</strong>. Works over 4G/5G mobile data or different Wi-Fi.</p>
+    </div>
+
+    <div class="card">
+      <span class="tag tag-lan">Same Wi-Fi Network</span>
+      <h2>Local LAN</h2>
+      <img class="qr-img" src="data:image/png;base64,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oqUlCvU4o5r0wqiCibAmWlqiUI8zqkkvjCqYCGuipSUK9TijmvTCqIKJsCZaWqJQjzOqSS+MKpgIa6KlJQr1OKOa9MKogomW87qm541idSJ8DxMTZiyTTW8UqxPhe5iYMGOZbHqjWJ0I38PEhBnLZNMbxepE+B4mJsxYJpveKFYnwvcwMWHGMtn0RrE6Eb6HiQkzlsmmN4rVifA9TEyYsUw2vVGsToTvYWLCjGWy6Y1idSJ8DxMTZiyTTW8UqxPhe5iYMGOZbHqjWJ0I38PEhBnLZNMbxepE+B4mJsxYJpveKFYnwvcwMWHGMtn0RrE6Eb6HiXHo9zxf6m+0F/rli+uYGEe+JvpGe6FfvriOiXHka6JvtBf65YvrmBhHvib6RnuhX764jolx5Guib7QX+uWL65gYR74m+kZ7oV++uI6JceRrom+0F/rli+uYGEe+JvpGe6FfvriOiXHka6JvtBf65YvrmBhHvib6RnuhX764jolx5Guib7QX+uWL65gYR74m+kZ7oV++uI6JceRrom+0F/rli+uYGEe+JvpGe6FfvrhOicWJ6JxXoXNehc55FTrnVeicV6FzXoXOeRU651XonFehc16FznkVOudV6JxXoXNehc55FTrnVeicV6FzXoXOeRU651XonFehc16FznkVOudV6JxXoXNehc55FTrnVeicV6FzXoXOeRU651XonFehc16FznkVOudV6JxXoXNehc55FTrnVeicV6FzXoXOeRU651XonFehc16FznkVOudV6JxXoXNehc55FTrnVeicV6FzXoXOeRX+C94Qf1mEcqEkAAAAAElFTkSuQmCC" alt="Local LAN QR Code" />
+      <div class="url-box">exp://172.16.71.92:8081</div>
+      <p class="hint">Use when phone and PC are on the same Wi-Fi router for fastest instant updates.</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a class="btn" href="http://localhost:8081" target="_blank">🌐 Open Web Preview (Localhost)</a>
+  </div>
+</body>
+</html>

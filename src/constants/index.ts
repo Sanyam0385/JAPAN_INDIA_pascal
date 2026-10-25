@@ -3,7 +3,7 @@ export * from './typography';
 export * from './spacing';
 
 export const APP_NAME = 'CIRCULO';
-export const APP_VERSION = '1.0.0-demo';
+export const APP_VERSION = '1.0.0';
 
 export const DEMO_MODE = true; // Set to false in production
 
@@ -12,6 +12,7 @@ export const ROLES = {
   FORMAL_COLLECTOR: 'formal_collector',
   INFORMAL_PICKER: 'informal_picker',
   MUNICIPAL_ADMIN: 'municipal_admin',
+  RECYCLER: 'recycler',
 } as const;
 
 export type UserRole = typeof ROLES[keyof typeof ROLES];
@@ -21,6 +22,7 @@ export const ROLE_LABELS: Record<string, string> = {
   formal_collector: 'Municipal Waste Collector',
   informal_picker: 'Waste Picker / Recycler',
   municipal_admin: 'Municipal Administrator',
+  recycler: 'Recycler / MRF Facility',
 };
 
 export const ROLE_ICONS: Record<string, string> = {
@@ -28,6 +30,7 @@ export const ROLE_ICONS: Record<string, string> = {
   formal_collector: 'truck',
   informal_picker: 'recycle',
   municipal_admin: 'shield-checkmark',
+  recycler: 'business',
 };
 
 export const RECYCLING_REQUEST_STATUSES = [

@@ -1,0 +1,40 @@
+{
+  "cityName": "Amritsar (AMC)",
+  "wardName": "Central Zone — Golden Temple Heritage Ward 24",
+  "cityCode": "amritsar",
+  "bins": [
+    {
+      "key": "wet",
+      "label": "Wet Organic Waste",
+      "localLabel": "ਗਿੱਲਾ ਕੂੜਾ (Wet / Langar Scraps)",
+      "colorHex": "#2E7D32",
+      "accepts": ["Langar organic leftovers", "Vegetables & fruit discards", "Tea leaves", "Flower offerings"],
+      "rules": ["Keep compostable items separate", "No polythene bags"]
+    },
+    {
+      "key": "dry",
+      "label": "Dry Recyclables",
+      "localLabel": "ਸੁੱਕਾ ਕੂੜਾ (Paper, Plastic, Tin)",
+      "colorHex": "#1565C0",
+      "accepts": ["Plastic containers", "Cardboard carton", "Newspapers", "Tin cans", "Glass bottles"],
+      "rules": ["Must be clean and dry", "Flatten tins and boxes"]
+    },
+    {
+      "key": "sanitary",
+      "label": "Sanitary & Domestic Hazardous",
+      "localLabel": "ਘਰੇਲੂ ਖ਼ਤਰਨਾਕ (Sanitary / Reject)",
+      "colorHex": "#D84315",
+      "accepts": ["Diapers", "Medical masks", "Expired drugs", "Cleaning chemicals", "Fluorescent tubes"],
+      "rules": ["Wrap in paper securely", "Hand over separately to AMC sweeper vehicle"]
+    }
+  ],
+  "collectionSchedule": [
+    { "day": "Monday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "AMC Door-to-door green vehicle" },
+    { "day": "Tuesday", "category": "dry", "timeSlot": "06:30 – 08:30", "notes": "Dry segregation van" },
+    { "day": "Wednesday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "AMC Door-to-door green vehicle" },
+    { "day": "Thursday", "category": "dry", "timeSlot": "06:30 – 08:30", "notes": "Dry segregation van" },
+    { "day": "Friday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "AMC Door-to-door green vehicle" },
+    { "day": "Saturday", "category": "sanitary", "timeSlot": "07:00 – 09:00", "notes": "Hazardous & sanitary pickup" },
+    { "day": "Sunday", "category": "dry", "timeSlot": "07:30 – 09:30", "notes": "Market & residential recycling" }
+  ]
+}

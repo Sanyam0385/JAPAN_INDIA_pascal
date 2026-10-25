@@ -1,6 +1,15 @@
 // Core TypeScript types for CIRCULO platform
 
-export type UserRole = 'household' | 'formal_collector' | 'informal_picker' | 'municipal_admin';
+export type UserRole = 'household' | 'formal_collector' | 'informal_picker' | 'municipal_admin' | 'recycler';
+
+export interface UserLocationCoords {
+  latitude: number;
+  longitude: number;
+  accuracy?: number | null;
+  heading?: number | null;
+  speed?: number | null;
+  timestamp?: number | null;
+}
 
 export interface User {
   id: string;
@@ -11,6 +20,17 @@ export interface User {
   avatarUrl?: string;
   preferredLanguage: string;
   locality?: string;
+  subLocality?: string;
+  city?: string;
+  state?: string;
+  wardName?: string;
+  cityKey?: string;
+  lat?: number;
+  lng?: number;
+  accuracy?: number | null;
+  locationSource?: 'gps' | 'manual' | 'demo';
+  locationUpdatedAt?: string;
+  coordinates?: UserLocationCoords;
   createdAt: string;
 }
 
@@ -68,6 +88,44 @@ export interface CollectionRecord {
   segregationCompliant: boolean;
   notes?: string;
   photoUrl?: string;
+}
+
+export type RouteStopStatus = 'pending' | 'current' | 'completed' | 'skipped';
+
+export interface RouteStopData {
+  id: string;
+  routeId?: string;
+  sequence: number;
+  householdId?: string;
+  houseNumber: string;
+  address: string;
+  locality: string;
+  ward?: string;
+  latitude: number;
+  longitude: number;
+  wasteType: 'wet' | 'dry' | 'recyclable' | 'hazardous';
+  timeSlot: string;
+  status: RouteStopStatus;
+  collectedKg?: number;
+  segregationRating?: number;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface CollectorRoute {
+  id: string;
+  collectorId?: string;
+  collectorName: string;
+  vehicleNumber?: string;
+  shiftDate: string;
+  ward: string;
+  cityKey: string;
+  truckCapacityKg: number;
+  currentLoadKg: number;
+  status: 'active' | 'completed' | 'paused';
+  totalStops: number;
+  completedStops: number;
+  stops: RouteStopData[];
 }
 
 // Recycling
@@ -143,12 +201,14 @@ export interface Complaint {
   category: string;
   description: string;
   locality: string;
+  ward?: string;
+  cityKey?: string;
   address?: string;
   photoUrl?: string;
   status: ComplaintStatus;
   isDemoData?: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   resolvedAt?: string;
   resolution?: string;
   assignedTo?: string;
@@ -197,8 +257,11 @@ export interface AppNotification {
   userId: string;
   title: string;
   body: string;
+  message?: string;
   type: string;
   isRead: boolean;
+  read?: boolean;
+  jobId?: string;
   createdAt: string;
   metadata?: Record<string, unknown>;
 }
@@ -232,6 +295,7 @@ export interface WasteItem {
   id: string;
   name: string;
   icon: string;
+  emoji?: string;
   correctBin: string;
   explanation: string;
   category: string;
@@ -267,4 +331,267 @@ export interface MunicipalStats {
   openComplaints: number;
   resolvedComplaints: number;
   volunteerEvents: number;
+}
+
+// ============================================================================
+// SHARED RECORD LAYER (CIRCULO Unified Handoff Architecture)
+// Chain: Household -> Picker -> Recycler / MRF -> Municipal Ledger
+// ============================================================================
+
+export type PickupJobStatus =
+  | 'listed'
+  | 'rate_proposed'
+  | 'rate_locked'
+  | 'claimed'
+  | 'en_route'
+  | 'collected'
+  | 'weighed'
+  | 'handed_to_recycler'
+  | 'completed'
+  | 'disputed';
+
+export interface PickupJobLocation {
+  ward: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  distanceKm?: number;
+}
+
+export interface PickupJob {
+  id: string;
+  householdId: string;
+  householdName?: string;
+  householdAddress?: string;
+  pickerId?: string;
+  pickerName?: string;
+  assignedPickerName?: string;
+  material: string;
+  estimatedKg: number;
+  status: PickupJobStatus;
+  proposedRatePerKg?: number;
+  lockedRatePerKg?: number;
+  measuredKg?: number;
+  createdAt: string;
+  updatedAt?: string;
+  window: string;
+  pickupWindow?: string;
+  location: PickupJobLocation;
+  ward?: string;
+  cityKey?: string;
+  lat?: number;
+  lng?: number;
+  notes?: string;
+  pin?: string;
+  activeOffer?: RateOffer;
+  destinationId?: string;
+  destinationName?: string;
+  receiptId?: string;
+  disputeId?: string;
+  qrCode?: string;
+  hasContamination?: boolean;
+}
+
+export type RateOfferStatus = 'pending' | 'accepted' | 'countered' | 'rejected';
+
+export interface RateOffer {
+  id: string;
+  jobId: string;
+  proposedBy: 'household' | 'picker';
+  ratePerKg: number;
+  status: RateOfferStatus;
+  counterOffer?: {
+    proposedBy: 'household' | 'picker';
+    ratePerKg: number;
+    createdAt?: string;
+    note?: string;
+  };
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ReceiptLineItem {
+  label: string;
+  amount: number;
+  ratePerKg?: number;
+  isDeduction?: boolean;
+  reason?: string;
+}
+
+export type ReceiptPaymentStatus = 'pending' | 'cleared_upi_simulated';
+
+export interface Receipt {
+  id: string;
+  jobId: string;
+  receiptNumber: string;
+  material: string;
+  measuredKg: number;
+  ratePerKg: number;
+  lineItems: ReceiptLineItem[];
+  total: number;
+  paymentStatus: ReceiptPaymentStatus;
+  destinationId?: string;
+  destinationName?: string;
+  issuedAt: string;
+  householdId?: string;
+  householdName?: string;
+  pickerId?: string;
+  pickerName?: string;
+  collectorName?: string;
+  recyclerId?: string;
+  recyclerName?: string;
+  ledgerHash?: string;
+  disputeId?: string;
+  disputeStatus?: DisputeStatus;
+}
+
+export interface Recycler {
+  id: string;
+  name: string;
+  address: string;
+  locality?: string;
+  acceptedMaterials: string[];
+  hours: string;
+  phone?: string;
+  rating?: number;
+  isVerified?: boolean;
+  priceListPerKg?: Record<string, number>;
+  latitude?: number;
+  longitude?: number;
+}
+
+export type QualityGrade = 'clean' | 'mixed' | 'contaminated';
+export type RecyclerIntakeStatus = 'received' | 'graded' | 'settled' | 'rejected';
+
+export interface RecyclerIntake {
+  id: string;
+  jobId: string;
+  recyclerId: string;
+  recyclerName?: string;
+  declaredKg: number;
+  confirmedKg: number;
+  qualityGrade: QualityGrade;
+  contaminationNote?: string;
+  deductionAmount?: number;
+  settlementAmount?: number;
+  status: RecyclerIntakeStatus;
+  createdAt?: string;
+  settledAt?: string;
+}
+
+export type DisputeRaisedBy = 'household' | 'picker' | 'recycler';
+export type DisputeReason =
+  | 'weight'
+  | 'price'
+  | 'payment'
+  | 'other'
+  | 'weight_mismatch'
+  | 'rate_changed'
+  | 'contamination_unfair'
+  | 'payment_not_received';
+export type DisputeStatus = 'open' | 'under_review' | 'resolved';
+
+export interface Dispute {
+  id: string;
+  jobId: string;
+  receiptId?: string;
+  receiptNumber?: string;
+  raisedBy: DisputeRaisedBy;
+  raisedByUserId?: string;
+  raisedByName?: string;
+  partyAccused?: string;
+  material?: string;
+  disputedAmount?: number;
+  claimedWeight?: number;
+  measuredWeight?: number;
+  claimedRate?: number;
+  appliedRate?: number;
+  reason: DisputeReason;
+  notes: string;
+  photoEvidenceUri?: string;
+  status: DisputeStatus;
+  adminNote?: string;
+  resolution?: string;
+  resolutionAction?: 'uphold' | 'adjust' | 'split';
+  adjustedTotal?: number;
+  createdAt: string;
+  updatedAt?: string;
+  resolvedAt?: string;
+}
+
+export type IssueType = 'missed_pickup' | 'contamination' | 'overflow' | 'other';
+export type IssueStatus = 'open' | 'investigating' | 'resolved';
+
+export interface Issue {
+  id: string;
+  raisedByRole: UserRole | string;
+  raisedByUserId?: string;
+  raisedByName?: string;
+  locality?: string;
+  ward?: string;
+  type: IssueType;
+  note: string;
+  status: IssueStatus;
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+export interface CityBinConfig {
+  key: string;
+  label: string;
+  localLabel?: string;
+  colorHex?: string;
+  color?: string;
+  colorName?: string;
+  accepts?: string[];
+  acceptedItems?: string[];
+  rules?: string[];
+}
+
+export interface WatchLearnVideo {
+  id: string;
+  title: string;
+  duration: string;
+  category: string;
+  views: string;
+  thumbnailEmoji: string;
+  color: string;
+  takeaways: string[];
+  youtubeId?: string;
+}
+
+export interface CityScheduleDay {
+  day: string;
+  category: string;
+  timeSlot: string;
+  notes?: string;
+}
+
+export interface CityConfigSchedule {
+  wet: string;
+  dry: string;
+  sanitary?: string;
+  hazardous?: string;
+  [key: string]: any;
+}
+
+export interface CityConfig {
+  cityName: string;
+  name: string;
+  wardName: string;
+  cityCode?: string;
+  municipalName?: string;
+  state?: string;
+  isGeneric?: boolean;
+  notice?: string;
+  centerCoords?: { lat: number; lng: number };
+  bins: CityBinConfig[] & {
+    wet: CityBinConfig;
+    dry: CityBinConfig;
+    sanitary?: CityBinConfig;
+    hazardous?: CityBinConfig;
+    [key: string]: any;
+  };
+  collectionSchedule: CityScheduleDay[];
+  schedule: CityConfigSchedule;
 }

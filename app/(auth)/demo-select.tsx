@@ -1,13 +1,14 @@
-// Demo Role Selector — hackathon judges can instantly switch roles
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../src/constants';
 import { DEMO_ACCOUNTS } from '../../src/lib/demo/demoData';
 import type { UserRole } from '../../src/types';
+import { LanguageSelectorButton } from '../../src/components/ui';
 
 const ROLE_CONFIG: Record<UserRole, { icon: string; color: string; bgColor: string; features: string[] }> = {
   household: {
@@ -34,11 +35,18 @@ const ROLE_CONFIG: Record<UserRole, { icon: string; color: string; bgColor: stri
     bgColor: '#F3E5F5',
     features: ['Municipal overview', 'Route management', 'Complaint resolution', 'Statistics & reports', 'Policy configuration'],
   },
+  recycler: {
+    icon: '🏭',
+    color: '#00796B',
+    bgColor: '#E0F2F1',
+    features: ['Incoming picker lots', 'Confirm & grade weight', 'Quality verification', 'Clear UPI settlement', 'Circularity Passport'],
+  },
 };
 
 export default function DemoSelectScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { signInWithRole, isLoading } = useAuthStore();
 
   const handleRoleSelect = async (role: UserRole) => {
@@ -50,16 +58,19 @@ export default function DemoSelectScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          </TouchableOpacity>
+          <LanguageSelectorButton variant="pill" />
+        </View>
         <View style={styles.headerCenter}>
           <View style={styles.demoBadge}>
-            <Text style={styles.demoBadgeText}>⚡ DEMO MODE</Text>
+            <Text style={styles.demoBadgeText}>⚡ INTERACTIVE SIMULATOR</Text>
           </View>
-          <Text style={styles.title}>Choose a Role</Text>
+          <Text style={styles.title}>{t('auth.demoRoleSelect', 'Choose a Stakeholder')}</Text>
           <Text style={styles.subtitle}>
-            Explore CIRCULO from any perspective.{'\n'}No login or credentials required.
+            {t('auth.demoRoleSubtitle', 'Explore CIRCULO across all 5 circular economy roles.\nInstant 1-tap persona switching.')}
           </Text>
         </View>
       </View>
@@ -85,13 +96,13 @@ export default function DemoSelectScreen() {
                   <Text style={[styles.roleName, { color: config.color }]}>
                     {account.name}
                   </Text>
-                  <Text style={styles.roleType}>{account.role.replace(/_/g, ' ').toUpperCase()}</Text>
+                  <Text style={styles.roleType}>{t('roles.' + account.role, account.role.replace(/_/g, ' ').toUpperCase())}</Text>
                   <Text style={styles.roleLocality}>{account.locality}</Text>
                 </View>
                 <Ionicons name="arrow-forward-circle" size={28} color={config.color} />
               </View>
               <View style={styles.cardBody}>
-                <Text style={styles.description}>{account.description}</Text>
+                <Text style={styles.description}>{t('roles.' + account.role + 'Desc', account.description)}</Text>
                 <View style={styles.features}>
                   {config.features.map((f, i) => (
                     <View key={i} style={styles.featureRow}>
@@ -119,8 +130,9 @@ export default function DemoSelectScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: Spacing[4], paddingBottom: Spacing[4] },
-  backBtn: { alignSelf: 'flex-start', paddingVertical: Spacing[2] },
-  headerCenter: { alignItems: 'center', marginTop: Spacing[2] },
+  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing[1] },
+  backBtn: { paddingVertical: Spacing[2] },
+  headerCenter: { alignItems: 'center', marginTop: Spacing[1] },
   demoBadge: {
     backgroundColor: Colors.warningLight,
     paddingHorizontal: Spacing[3],

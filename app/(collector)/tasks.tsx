@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
 } from '../../src/constants';
@@ -48,12 +49,9 @@ const CATEGORY_COLORS: Record<WasteCategory, string> = {
   hazardous: Colors.error,
 };
 
-const CATEGORY_LABELS: Record<WasteCategory, string> = {
-  wet: 'Wet', dry: 'Dry', recyclable: 'Recyclable', hazardous: 'Hazardous',
-};
-
 export default function CollectorTasksScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [selectedAddress, setSelectedAddress] = useState<string>(DEMO_ADDRESSES[0].id);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<WasteCategory>('wet');
@@ -65,7 +63,7 @@ export default function CollectorTasksScreen() {
 
   function handleSubmit() {
     if (!weight || isNaN(Number(weight)) || Number(weight) <= 0) {
-      Alert.alert('Invalid weight', 'Please enter a valid weight in kg.');
+      Alert.alert(t('common.error'), t('errors.generalError'));
       return;
     }
     const now = new Date();
@@ -81,7 +79,7 @@ export default function CollectorTasksScreen() {
     setRecentCollections(prev => [newEntry, ...prev]);
     setWeight('');
     setNotes('');
-    Alert.alert('Demo: Collection Recorded', `${weight} kg of ${CATEGORY_LABELS[selectedCategory]} waste recorded.\n(Demo only — not sent to backend)`);
+    Alert.alert(t('collector.recordCollection'), `${weight} kg recorded.`);
   }
 
   return (
@@ -96,8 +94,8 @@ export default function CollectorTasksScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing[4] }]}>
-        <Text style={styles.headerTitle}>Record Collection</Text>
-        <Text style={styles.headerSub}>Log today's pickups (Demo mode)</Text>
+        <Text style={styles.headerTitle}>{t('collector.recordCollection')}</Text>
+        <Text style={styles.headerSub}>{t('collector.logPickups')}</Text>
       </View>
 
       <View style={styles.body}>
@@ -105,10 +103,10 @@ export default function CollectorTasksScreen() {
 
         {/* Form */}
         <Card style={styles.formCard}>
-          <Text style={styles.sectionTitle}>New Collection</Text>
+          <Text style={styles.sectionTitle}>{t('collector.recordCollection')}</Text>
 
           {/* Address Selector */}
-          <Text style={styles.fieldLabel}>Stop / Address</Text>
+          <Text style={styles.fieldLabel}>{t('collector.selectStop')}</Text>
           <TouchableOpacity
             style={styles.addressSelector}
             onPress={() => setShowAddressPicker(v => !v)}
@@ -148,7 +146,7 @@ export default function CollectorTasksScreen() {
           )}
 
           {/* Category Selector */}
-          <Text style={styles.fieldLabel}>Waste Category</Text>
+          <Text style={styles.fieldLabel}>{t('collector.wasteCategory')}</Text>
           <View style={styles.categoryRow}>
             {WASTE_CATEGORIES.map(cat => (
               <TouchableOpacity
@@ -165,17 +163,17 @@ export default function CollectorTasksScreen() {
                   styles.categoryLabel,
                   selectedCategory === cat.id && { color: Colors.surface },
                 ]}>
-                  {cat.label}
+                  {t(`materials.${cat.id}_waste`, { defaultValue: cat.label })}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Weight */}
-          <Text style={styles.fieldLabel}>Weight (kg)</Text>
+          <Text style={styles.fieldLabel}>{t('collector.weightKg')}</Text>
           <TextInput
             style={styles.weightInput}
-            placeholder="Enter weight in kg (e.g. 12.5)"
+            placeholder={t('collector.enterWeight')}
             placeholderTextColor={Colors.textTertiary}
             keyboardType="decimal-pad"
             value={weight}
@@ -183,7 +181,7 @@ export default function CollectorTasksScreen() {
           />
 
           {/* Notes */}
-          <Text style={styles.fieldLabel}>Notes (optional)</Text>
+          <Text style={styles.fieldLabel}>{t('common.notes')}</Text>
           <TextInput
             style={[styles.weightInput, styles.notesInput]}
             placeholder="Add any collection notes..."
@@ -207,12 +205,12 @@ export default function CollectorTasksScreen() {
           {/* Submit */}
           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} activeOpacity={0.8}>
             <Ionicons name="checkmark-circle" size={20} color={Colors.surface} />
-            <Text style={styles.submitBtnText}>Record Collection</Text>
+            <Text style={styles.submitBtnText}>{t('collector.saveCollection')}</Text>
           </TouchableOpacity>
         </Card>
 
         {/* Recent Collections */}
-        <Text style={styles.sectionTitle}>Recent Collections Today</Text>
+        <Text style={styles.sectionTitle}>{t('collector.recentCollections')}</Text>
         <Text style={styles.demoNote}>⚠️ Demo data — not real records</Text>
         {recentCollections.map(rc => (
           <View key={rc.id} style={styles.recentCard}>
@@ -222,12 +220,12 @@ export default function CollectorTasksScreen() {
               <View style={styles.recentMeta}>
                 <View style={[styles.catBadge, { backgroundColor: CATEGORY_COLORS[rc.category] + '20' }]}>
                   <Text style={[styles.catBadgeText, { color: CATEGORY_COLORS[rc.category] }]}>
-                    {CATEGORY_LABELS[rc.category]}
+                    {t(`materials.${rc.category}_waste`, { defaultValue: rc.category })}
                   </Text>
                 </View>
                 <Text style={styles.recentWeight}>{rc.weight} kg</Text>
                 {rc.notes && (
-                  <Text style={styles.recentNotes} numberOfLines={1}>{rc.notes}</Text>
+                  <Text style={styles.recentNotes} numberOfLines={1}>"{rc.notes}"</Text>
                 )}
               </View>
             </View>

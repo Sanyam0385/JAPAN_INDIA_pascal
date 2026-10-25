@@ -1,219 +1,371 @@
-// Login Screen
+// Login Screen matching login.png design reference
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity,
+  KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/stores/authStore';
-import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../src/constants';
+import { AuthBackground } from '../../src/components/auth/AuthBackground';
+import { AuthScreenHeader } from '../../src/components/auth/AuthScreenHeader';
+import { CirculoLogoBadge } from '../../src/components/auth/CirculoLogoBadge';
+import { AuthTextField } from '../../src/components/auth/AuthTextField';
+import {
+  Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow,
+} from '../../src/constants';
 
 export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { signIn, isLoading, error, clearError } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
+
+  const validate = () => {
+    const errs: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      errs.email = 'Email address is required';
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      errs.email = 'Please enter a valid email address';
+    }
+    if (!password) {
+      errs.password = 'Password is required';
+    }
+    setValidationErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleLogin = async () => {
     clearError();
-    if (!email.trim() || !password.trim()) return;
-    await signIn(email.trim(), password);
+    if (!validate()) return;
+    const res = await signIn(email.trim(), password);
+    if (res?.unconfirmedEmail) {
+      router.push('/(auth)/verify-otp');
+      return;
+    }
     const { isAuthenticated } = useAuthStore.getState();
-    if (isAuthenticated) router.replace('/');
-  };
-
-  const fillDemo = (role: string) => {
-    const demos: Record<string, { email: string; pass: string }> = {
-      household: { email: 'priya@demo.circulo.app', pass: 'demo1234' },
-      collector: { email: 'ramesh@demo.circulo.app', pass: 'demo1234' },
-      picker: { email: 'meena@demo.circulo.app', pass: 'demo1234' },
-      admin: { email: 'admin@demo.circulo.app', pass: 'demo1234' },
-    };
-    if (demos[role]) {
-      setEmail(demos[role].email);
-      setPassword(demos[role].pass);
+    if (isAuthenticated) {
+      router.replace('/');
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + Spacing[6] }]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Back */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
+  const handleForgotPassword = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+      Alert.alert(
+        t('auth.forgotPasswordTitle', 'Reset Password'),
+        'Please enter your email address in the field above to receive a password reset code.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
 
-        {/* Branding */}
-        <View style={styles.brand}>
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>♻</Text>
-          </View>
-          <Text style={styles.title}>Log In</Text>
-          <Text style={styles.subtitle}>Sign in to your CIRCULO account</Text>
+    try {
+      await useAuthStore.getState().resetPasswordForEmail(trimmed);
+      router.push('/(auth)/verify-otp');
+    } catch (e: any) {
+      Alert.alert(
+        t('auth.forgotPasswordTitle', 'Reset Password'),
+        e.message || 'Failed to send password reset code.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleQuickDemoFill = () => {
+    setEmail('priya@demo.circulo.app');
+    setPassword('demo1234');
+    setValidationErrors({});
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Background artwork: off-white canvas with leaves and watercolor waves */}
+      <AuthBackground />
+
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Top Header with Back Arrow and Dark Green Settings Gear */}
+        <View style={{ paddingTop: insets.top }}>
+          <AuthScreenHeader />
         </View>
 
-        {/* Error */}
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
-          </View>
-        ) : null}
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + Spacing[8] },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Centered Circular Logo Badge, Wordmark & Tagline */}
+          <View style={styles.brandSection}>
+            <CirculoLogoBadge
+              size={96}
+              onLongPress={handleQuickDemoFill}
+            />
 
-        {/* Form */}
-        <View style={styles.form}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor={Colors.textTertiary}
+            <Text style={styles.wordmark}>CIRCULO</Text>
+
+            <Text style={styles.tagline}>
+              {t('auth.welcomeSubtitle', 'Turning waste into\na traceable resource')}
+            </Text>
+          </View>
+
+          {/* Screen Title & Subtitle */}
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>{t('auth.logInTitle', 'Log In')}</Text>
+            <Text style={styles.subtitle}>
+              {t('auth.signInSubtitle', 'Sign in to your CIRCULO account')}
+            </Text>
+          </View>
+
+          {/* Global Auth Service Error Banner */}
+          {error ? (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle" size={18} color={Colors.error} />
+              <Text style={styles.errorBoxText}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* Form Fields */}
+          <View style={styles.form}>
+            {/* Email Address */}
+            <AuthTextField
+              label={t('auth.emailAddress', 'Email Address')}
+              placeholder={t('auth.emailAddressPlaceholder', 'you@example.com')}
+              leadingIcon="mail-outline"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={val => {
+                setEmail(val);
+                if (validationErrors.email) setValidationErrors(prev => ({ ...prev, email: undefined }));
+                clearError();
+              }}
+              error={validationErrors.email}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
             />
+
+            {/* Password */}
+            <AuthTextField
+              label={t('auth.passwordLabel', 'Password')}
+              placeholder={t('auth.passwordPlaceholder', 'Enter password')}
+              leadingIcon="lock-closed-outline"
+              isPassword
+              value={password}
+              onChangeText={val => {
+                setPassword(val);
+                if (validationErrors.password) setValidationErrors(prev => ({ ...prev, password: undefined }));
+                clearError();
+              }}
+              error={validationErrors.password}
+              autoCapitalize="none"
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
+            />
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={handleForgotPassword}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Forgot password"
+            >
+              <Text style={styles.forgotText}>
+                {t('auth.forgotPasswordLink', 'Forgot password?')}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Primary Sign In Button */}
+            <TouchableOpacity
+              style={[styles.signInBtn, isLoading && styles.btnDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+              activeOpacity={0.88}
+              accessibilityRole="button"
+              accessibilityLabel="Sign In"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.signInBtnText}>
+                  {t('auth.signInBtn', 'Sign In')}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordRow}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Enter password"
-                placeholderTextColor={Colors.textTertiary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
-              >
-                <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={Colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
+          {/* Or Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('auth.orDivider', 'or')}</Text>
+            <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity
-            style={[styles.loginBtn, isLoading && styles.disabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.loginBtnText}>{isLoading ? 'Signing in...' : 'Sign In'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Demo fill helpers */}
-        <View style={styles.demoSection}>
-          <Text style={styles.demoTitle}>⚡ Demo Auto-fill</Text>
-          <View style={styles.demoButtons}>
-            {['household', 'collector', 'picker', 'admin'].map(r => (
-              <TouchableOpacity key={r} style={styles.demoBtn} onPress={() => fillDemo(r)}>
-                <Text style={styles.demoBtnText}>{r}</Text>
-              </TouchableOpacity>
-            ))}
+          {/* Create Account Link Footer */}
+          <View style={styles.footerRow}>
+            <Text style={styles.footerPrompt}>
+              {t('auth.newToCirculo', 'New to CIRCULO?')}{' '}
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/register')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Create account"
+            >
+              <Text style={styles.createAccountLink}>
+                {t('auth.createAccountBtn', 'Create account')}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Footer links */}
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={() => router.push('/(auth)/demo-select')}>
-            <Text style={styles.linkText}>Try demo without login →</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')} style={{ marginTop: Spacing[3] }}>
-            <Text style={styles.linkText}>Create new account →</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing[5] },
-  backBtn: { alignSelf: 'flex-start', marginBottom: Spacing[4] },
-  brand: { alignItems: 'center', marginBottom: Spacing[8] },
-  logo: {
-    width: 72, height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.mintPale,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: Spacing[4],
-    borderWidth: 2, borderColor: Colors.border,
+  container: {
+    flex: 1,
+    backgroundColor: '#FAFDF9',
   },
-  logoText: { fontSize: 36 },
-  title: { fontSize: FontSize['2xl'], fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  subtitle: { fontSize: FontSize.base, color: Colors.textSecondary, marginTop: Spacing[1] },
+  keyboardWrap: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing[6],
+    paddingTop: Spacing[2],
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: Spacing[5],
+  },
+  wordmark: {
+    fontSize: 26,
+    fontWeight: FontWeight.extrabold,
+    color: '#0A2E12',
+    letterSpacing: 4.5,
+    marginTop: Spacing[3],
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  tagline: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    color: '#4A6B54',
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 240,
+  },
+  titleSection: {
+    alignItems: 'center',
+    marginBottom: Spacing[6],
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: FontWeight.extrabold,
+    color: '#0A2E12',
+    letterSpacing: -0.5,
+    marginBottom: Spacing[1],
+  },
+  subtitle: {
+    fontSize: FontSize.base,
+    color: '#4A6B54',
+    textAlign: 'center',
+  },
   errorBox: {
-    backgroundColor: Colors.errorLight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    backgroundColor: '#FFEBEE',
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.error,
     borderRadius: BorderRadius.md,
     padding: Spacing[3],
     marginBottom: Spacing[4],
-    borderLeftWidth: 4, borderLeftColor: Colors.error,
   },
-  errorText: { color: Colors.error, fontSize: FontSize.sm },
-  form: { gap: Spacing[4] },
-  field: { gap: Spacing[1.5] },
-  label: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
-  input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
-    fontSize: FontSize.base,
-    color: Colors.textPrimary,
-    ...Shadow.sm,
+  errorBoxText: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    color: Colors.error,
+    fontWeight: FontWeight.medium,
   },
-  passwordRow: { position: 'relative' },
-  passwordInput: { paddingRight: Spacing[12] },
-  eyeBtn: {
-    position: 'absolute', right: Spacing[4],
-    top: 0, bottom: 0, justifyContent: 'center',
+  form: {
+    gap: 18,
   },
-  loginBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing[4],
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginTop: -Spacing[2],
+    paddingVertical: Spacing[1],
+  },
+  forgotText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    color: '#1B5E20',
+    textDecorationLine: 'underline',
+  },
+  signInBtn: {
+    backgroundColor: '#14632E',
+    borderRadius: 20,
+    minHeight: 54,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: Spacing[2],
     ...Shadow.base,
   },
-  disabled: { opacity: 0.6 },
-  loginBtnText: { color: Colors.textInverse, fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  demoSection: {
-    marginTop: Spacing[8],
-    backgroundColor: Colors.surfaceAlt,
-    borderRadius: BorderRadius.md,
-    padding: Spacing[4],
-    borderWidth: 1, borderColor: Colors.border,
+  btnDisabled: {
+    opacity: 0.65,
   },
-  demoTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textSecondary, marginBottom: Spacing[3] },
-  demoButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[2] },
-  demoBtn: {
-    backgroundColor: Colors.mintLight,
-    borderRadius: BorderRadius.base,
-    paddingHorizontal: Spacing[3],
-    paddingVertical: Spacing[1.5],
+  signInBtnText: {
+    color: '#FFFFFF',
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 0.3,
   },
-  demoBtnText: { fontSize: FontSize.xs, color: Colors.primary, fontWeight: FontWeight.semibold },
-  footer: { marginTop: Spacing[6], alignItems: 'center' },
-  linkText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[4],
+    marginVertical: Spacing[6],
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#DDE7E0',
+  },
+  dividerText: {
+    fontSize: FontSize.sm,
+    color: '#718276',
+    fontWeight: FontWeight.medium,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerPrompt: {
+    fontSize: FontSize.base,
+    color: '#4A6B54',
+  },
+  createAccountLink: {
+    fontSize: FontSize.base,
+    fontWeight: FontWeight.bold,
+    color: '#1B5E20',
+    textDecorationLine: 'underline',
+  },
 });

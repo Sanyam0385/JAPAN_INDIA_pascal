@@ -1,0 +1,47 @@
+{
+  "cityName": "Patiala (MC Patiala)",
+  "municipalName": "Municipal Corporation Patiala",
+  "state": "Punjab",
+  "wardName": "Ward 12 — Model Town / Leela Bhawan",
+  "cityCode": "patiala",
+  "indicativeNotice": "Indicative: Collection timings and ward rules based on Punjab Municipal Solid Waste Bylaws, verify with Municipal Corporation Patiala",
+  "centerCoords": {
+    "lat": 30.3398,
+    "lng": 76.3869
+  },
+  "bins": [
+    {
+      "key": "wet",
+      "label": "Wet Organic Waste",
+      "localLabel": "ਗਿੱਲਾ ਕੂੜਾ (Wet / Kitchen Waste)",
+      "colorHex": "#2E7D32",
+      "accepts": ["Kitchen food leftovers", "Fruit and vegetable peels", "Used tea leaves", "Garden waste & leaves", "Rotten food"],
+      "rules": ["Keep in green bin unbagged", "Never mix with single-use polythene bags", "Drain liquid curry/gravy before disposal"]
+    },
+    {
+      "key": "dry",
+      "label": "Dry Recyclable Waste",
+      "localLabel": "ਸੁੱਕਾ ਕੂੜਾ (Dry Recyclables)",
+      "colorHex": "#1565C0",
+      "accepts": ["Corrugated cardboard boxes", "Newspapers & Punjabi newspapers", "Plastic bottles & milk pouches (rinsed)", "Metal cans", "Glass bottles"],
+      "rules": ["Ensure items are completely dry", "Flatten cardboard boxes and plastic cans", "Hand over clean recyclables to municipal cart"]
+    },
+    {
+      "key": "hazardous",
+      "label": "Domestic Hazardous & Sanitary",
+      "localLabel": "ਘਰੇਲੂ ਖ਼ਤਰਨਾਕ ਅਤੇ ਸੈਨੇਟਰੀ (Reject)",
+      "colorHex": "#C62828",
+      "accepts": ["Diapers and sanitary pads", "Expired medicines", "Dry cell batteries", "Broken glass wrapped in paper", "Pesticide cans"],
+      "rules": ["Wrap sanitary napkins/diapers securely in newspaper marked with red cross", "Never mix with dry recyclables"]
+    }
+  ],
+  "collectionSchedule": [
+    { "day": "Monday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "MCP Door-to-door green tipper (Indicative)" },
+    { "day": "Tuesday", "category": "dry", "timeSlot": "06:30 – 08:30", "notes": "Dry segregation cart (Indicative)" },
+    { "day": "Wednesday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "MCP Door-to-door green tipper (Indicative)" },
+    { "day": "Thursday", "category": "dry", "timeSlot": "06:30 – 08:30", "notes": "Dry segregation cart (Indicative)" },
+    { "day": "Friday", "category": "wet", "timeSlot": "06:30 – 08:30", "notes": "MCP Door-to-door green tipper (Indicative)" },
+    { "day": "Saturday", "category": "hazardous", "timeSlot": "07:00 – 09:00", "notes": "Sanitary & hazardous collection (Indicative)" },
+    { "day": "Sunday", "category": "dry", "timeSlot": "07:30 – 09:30", "notes": "Community market recycling drive (Indicative)" }
+  ]
+}

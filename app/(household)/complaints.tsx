@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../src/stores/appStore';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
@@ -32,14 +33,31 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'info'
   rejected_with_reason: { label: 'Rejected', variant: 'error' },
 };
 
+import { useUserLocation } from '../../src/lib/location/useUserLocation';
+import { useAuthStore } from '../../src/stores/authStore';
+
 export default function ComplaintsScreen() {
   const insets = useSafeAreaInsets();
-  const { complaints, createComplaint } = useAppStore();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'hi' ? 'hi-IN' : i18n.language === 'pa' ? 'pa-IN' : i18n.language === 'ja' ? 'ja-JP' : 'en-IN';
+  const { user } = useAuthStore();
+  const { complaints, createComplaint, hydrateComplaints } = useAppStore();
+  const { locality, isDemoUser } = useUserLocation();
   const [showForm, setShowForm] = useState(false);
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('Koramangala, Bengaluru');
+  const [location, setLocation] = useState(locality || (isDemoUser ? 'Koramangala, Bengaluru' : ''));
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    hydrateComplaints(user?.id);
+  }, [user?.id]);
+
+  React.useEffect(() => {
+    if (locality && (!location || (location.includes('Koramangala') && !isDemoUser))) {
+      setLocation(locality);
+    }
+  }, [locality, isDemoUser]);
 
   const myComplaints = complaints.slice(0, 20);
 
@@ -72,12 +90,12 @@ export default function ComplaintsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>📢 Complaints</Text>
-          <Text style={styles.subtitle}>Report issues and track resolution</Text>
+          <Text style={styles.title}>📢 {t('complaint.title', 'Complaints')}</Text>
+          <Text style={styles.subtitle}>{t('complaint.title', 'Report issues and track resolution')}</Text>
         </View>
         <TouchableOpacity style={styles.newBtn} onPress={() => setShowForm(true)}>
           <Ionicons name="add" size={20} color={Colors.textInverse} />
-          <Text style={styles.newBtnText}>Report</Text>
+          <Text style={styles.newBtnText}>{t('complaint.submit', 'Report')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -87,11 +105,11 @@ export default function ComplaintsScreen() {
       >
         <DemoDataBanner />
 
-        <Text style={styles.sectionTitle}>My Complaints</Text>
+        <Text style={styles.sectionTitle}>{t('complaint.myComplaints', 'My Complaints')}</Text>
 
         {myComplaints.length === 0 ? (
           <Card style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No complaints filed yet</Text>
+            <Text style={styles.emptyText}>{t('common.noResults', 'No complaints filed yet')}</Text>
           </Card>
         ) : (
           myComplaints.map(c => {
@@ -100,13 +118,13 @@ export default function ComplaintsScreen() {
             return (
               <Card key={c.id} style={styles.complaintCard}>
                 <View style={styles.complaintHeader}>
-                  <Text style={styles.refNum}>Ref: {c.referenceNumber}</Text>
-                  <Badge label={st.label} variant={st.variant} size="sm" />
+                  <Text style={styles.refNum}>{t('complaint.referenceNumber', 'Ref')}: {c.referenceNumber}</Text>
+                  <Badge label={t('status.' + c.status, st.label)} variant={st.variant} size="sm" />
                 </View>
 
                 <View style={styles.catRow}>
                   <Text style={styles.catIcon}>{cat?.icon ?? '📝'}</Text>
-                  <Text style={styles.catLabel}>{cat?.label ?? c.category}</Text>
+                  <Text style={styles.catLabel}>{t('complaint.categories.' + c.category, cat?.label ?? c.category)}</Text>
                 </View>
 
                 <Text style={styles.descText} numberOfLines={2}>{c.description}</Text>
@@ -114,7 +132,7 @@ export default function ComplaintsScreen() {
                 <View style={styles.metaRow}>
                   <Text style={styles.metaText}>📍 {c.locality}</Text>
                   <Text style={styles.metaText}>
-                    {new Date(c.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                    {new Date(c.createdAt).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
                   </Text>
                 </View>
 

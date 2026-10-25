@@ -3,18 +3,21 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../src/stores/appStore';
 import {
   Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
 } from '../../src/constants';
 import { Card, Badge, DemoDataBanner } from '../../src/components/ui';
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
+function formatDate(d: string, locale = 'en-IN') {
+  return new Date(d).toLocaleDateString(locale, { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'hi' ? 'hi-IN' : i18n.language === 'pa' ? 'pa-IN' : i18n.language === 'ja' ? 'ja-JP' : 'en-IN';
   const { volunteerEvents, registerForEvent, unregisterFromEvent } = useAppStore();
   const [activeTab, setActiveTab] = useState<'events' | 'challenges' | 'campaigns'>('events');
 
@@ -62,7 +65,7 @@ export default function CommunityScreen() {
         {/* Events */}
         {activeTab === 'events' && (
           <>
-            <Text style={styles.sectionTitle}>Upcoming Cleanup Events</Text>
+            <Text style={styles.sectionTitle}>{t('community.upcomingDrives', 'Upcoming Cleanup Events')}</Text>
             {volunteerEvents.map(event => (
               <Card key={event.id} style={styles.eventCard}>
                 <View style={styles.eventHeader}>
@@ -71,11 +74,11 @@ export default function CommunityScreen() {
                   </Text>
                   <View style={styles.eventInfo}>
                     <Text style={styles.eventName}>{event.name}</Text>
-                    <Text style={styles.eventDate}>{formatDate(event.date || event.eventDate || new Date().toISOString())}</Text>
+                    <Text style={styles.eventDate}>{formatDate(event.date || event.eventDate || new Date().toISOString(), locale)}</Text>
                     <Text style={styles.eventTime}>⏰ {event.startTime} – {event.endTime}</Text>
                   </View>
                   {event.isRegistered && (
-                    <Badge label="Registered" variant="success" size="sm" />
+                    <Badge label={t('community.registered', 'Registered ✓')} variant="success" size="sm" />
                   )}
                 </View>
 
@@ -89,7 +92,7 @@ export default function CommunityScreen() {
                   <View style={styles.metaItem}>
                     <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
                     <Text style={styles.metaText}>
-                      {event.registeredCount}/{event.maxParticipants} registered
+                      {event.registeredCount}/{event.maxParticipants} {t('community.participants', 'registered')}
                     </Text>
                   </View>
                 </View>
@@ -109,10 +112,10 @@ export default function CommunityScreen() {
                 >
                   <Text style={[styles.registerBtnText, event.isRegistered && styles.unregisterBtnText]}>
                     {event.isRegistered
-                      ? '✓ Registered — Tap to Cancel'
+                      ? t('community.unregister', 'Cancel Registration')
                       : event.maxParticipants && event.registeredCount >= event.maxParticipants
                         ? '❌ Event Full'
-                        : '✅ Register Now'}
+                        : `✅ ${t('community.register', 'Register Now')}`}
                   </Text>
                 </TouchableOpacity>
 
@@ -186,9 +189,9 @@ export default function CommunityScreen() {
                   <Text style={styles.donorsText}>👥 {c.donors} supporters</Text>
                   <TouchableOpacity
                     style={styles.donateBtn}
-                    onPress={() => Alert.alert('Demo Mode 💡', 'This is a simulated donation campaign.\nReal payment integration not configured.\n\nIn production, this would connect to a payment gateway.')}
+                    onPress={() => Alert.alert('Community Drive 💡', 'Thank you for supporting community circularity!\nYour pledge has been simulated in the local impact fund.')}
                   >
-                    <Text style={styles.donateBtnText}>💚 Support (Demo)</Text>
+                    <Text style={styles.donateBtnText}>💚 Support Sanitation Drive</Text>
                   </TouchableOpacity>
                 </Card>
               );

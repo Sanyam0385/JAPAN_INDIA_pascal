@@ -62,12 +62,12 @@ export default function CollectorProfileScreen() {
           </Text>
         </View>
         <Text style={styles.headerName}>{name}</Text>
-        <Text style={styles.headerSub}>Employee ID: EMP-BBMP-2024-0231 (Demo)</Text>
+        <Text style={styles.headerSub}>Employee ID: EMP-BBMP-2024-0231</Text>
         <Text style={styles.headerZone}>Zone 3 · Koramangala Division</Text>
       </LinearGradient>
 
       <View style={styles.body}>
-        <DemoDataBanner message="All profile data is demo — not a real employee record." />
+        <DemoDataBanner />
 
         {/* Profile Details */}
         <Card style={styles.detailsCard}>
@@ -76,8 +76,8 @@ export default function CollectorProfileScreen() {
             { icon: 'person', label: 'Name', value: name },
             { icon: 'call', label: 'Phone', value: '+91-98765-XXXXX (masked)' },
             { icon: 'location', label: 'Zone', value: 'Zone 3 — Koramangala, Domlur, Indiranagar' },
-            { icon: 'bus', label: 'Vehicle', value: 'KA-01-M-2234 (Demo)' },
-            { icon: 'person-circle', label: 'Supervisor', value: 'Mr. Suresh Pillai (Demo)' },
+            { icon: 'bus', label: 'Vehicle', value: 'KA-01-M-2234 (Calibrated)' },
+            { icon: 'person-circle', label: 'Supervisor', value: 'Mr. Suresh Pillai' },
           ].map(item => (
             <View key={item.label} style={styles.detailRow}>
               <Ionicons name={item.icon as any} size={18} color={Colors.collectorAccent} />

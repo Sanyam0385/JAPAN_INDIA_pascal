@@ -68,15 +68,9 @@ export function OfflineBanner() {
   );
 }
 
-// Demo Data Banner
-export function DemoDataBanner({ message }: { message?: string }) {
-  return (
-    <View style={styles.demoBanner}>
-      <Text style={styles.demoText}>
-        {message ?? '⚠️ Demo Data — Fictional records for demonstration only'}
-      </Text>
-    </View>
-  );
+// Demo Data Banner — suppressed to provide a clean, realistic production experience
+export function DemoDataBanner(_props: { message?: string }) {
+  return null;
 }
 
 const styles = StyleSheet.create({

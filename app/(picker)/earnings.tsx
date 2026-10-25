@@ -1,17 +1,23 @@
-// Informal Picker — Earnings Tracker
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
-  Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow, TAB_BAR_HEIGHT,
+  Colors, FontSize, FontWeight, Spacing, BorderRadius, TAB_BAR_HEIGHT,
 } from '../../src/constants';
-import { Card, DemoDataBanner } from '../../src/components/ui';
+import { Card, Badge } from '../../src/components/ui';
+import { useAppStore } from '../../src/stores/appStore';
+import { FairValueReceiptModal } from '../../src/components/shared';
+import type { Receipt } from '../../src/types';
 
 export default function PickerEarningsScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const { receipts } = useAppStore();
+  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
 
   const weeklyData = [
     { day: 'Mon', amount: 480, height: 48 },
@@ -23,37 +29,38 @@ export default function PickerEarningsScreen() {
     { day: 'Sun', amount: 510, height: 51 },
   ];
 
+  const totalReceiptsAmount = receipts.reduce((acc, r) => acc + r.total, 0);
+  const totalKg = receipts.reduce((acc, r) => acc + r.measuredKg, 0);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Earnings & Sales</Text>
-        <Text style={styles.subtitle}>Track recycling resale income and volume</Text>
+        <Text style={styles.title}>{t('picker.earningsSales')}</Text>
+        <Text style={styles.subtitle}>{t('picker.earningsSub')}</Text>
       </View>
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + Spacing[4] }]}
         showsVerticalScrollIndicator={false}
       >
-        <DemoDataBanner message="⚠️ DEMO EARNINGS — Representative figures based on simulated collection transactions." />
-
         {/* Hero Card */}
         <Card style={styles.heroCard}>
-          <Text style={styles.heroLabel}>THIS MONTH'S TOTAL RECYCLING SALES</Text>
-          <Text style={styles.heroAmount}>₹14,250<Text style={styles.heroSub}>.00</Text></Text>
+          <Text style={styles.heroLabel}>{t('picker.totalSalesMonth')}</Text>
+          <Text style={styles.heroAmount}>₹{(14250 + totalReceiptsAmount).toLocaleString('en-IN')}<Text style={styles.heroSub}>.00</Text></Text>
           <View style={styles.heroMetaRow}>
             <View style={styles.heroMetaItem}>
-              <Text style={styles.heroMetaValue}>385 kg</Text>
-              <Text style={styles.heroMetaLabel}>Material Resold</Text>
+              <Text style={styles.heroMetaValue}>{(385 + totalKg).toFixed(1)} kg</Text>
+              <Text style={styles.heroMetaLabel}>{t('picker.materialResold')}</Text>
             </View>
             <View style={styles.heroDivider} />
             <View style={styles.heroMetaItem}>
-              <Text style={styles.heroMetaValue}>26</Text>
-              <Text style={styles.heroMetaLabel}>Pickups Made</Text>
+              <Text style={styles.heroMetaValue}>{26 + receipts.length}</Text>
+              <Text style={styles.heroMetaLabel}>{t('picker.pickupsMade')}</Text>
             </View>
             <View style={styles.heroDivider} />
             <View style={styles.heroMetaItem}>
               <Text style={styles.heroMetaValue}>₹548</Text>
-              <Text style={styles.heroMetaLabel}>Avg / Pickup</Text>
+              <Text style={styles.heroMetaLabel}>{t('picker.avgPerPickup')}</Text>
             </View>
           </View>
         </Card>
@@ -61,7 +68,7 @@ export default function PickerEarningsScreen() {
         {/* Weekly Chart */}
         <Card style={styles.chartCard}>
           <View style={styles.chartHeader}>
-            <Text style={styles.cardHeading}>Weekly Resale Income</Text>
+            <Text style={styles.cardHeading}>{t('picker.weeklyResaleIncome')}</Text>
             <Text style={styles.chartTotal}>Total: ₹4,430</Text>
           </View>
 
@@ -77,6 +84,53 @@ export default function PickerEarningsScreen() {
             ))}
           </View>
         </Card>
+
+        {/* Receipts & Settlement History Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t('picker.receiptsSettlements')}</Text>
+          <Text style={styles.sectionSubtitle}>{t('picker.receiptsSub')}</Text>
+        </View>
+
+        {receipts.length === 0 ? (
+          <Card style={styles.emptyCard}>
+            <Text style={styles.emptyText}>{t('picker.noReceipts')}</Text>
+          </Card>
+        ) : (
+          receipts.map((rcpt) => (
+            <Card key={rcpt.id} style={styles.receiptCard}>
+              <View style={styles.receiptHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.receiptNum}>{rcpt.receiptNumber}</Text>
+                  <Text style={styles.receiptSub}>
+                    {rcpt.measuredKg} kg {rcpt.material.toUpperCase()} • ₹{rcpt.ratePerKg}/kg
+                  </Text>
+                </View>
+                <View style={styles.receiptTotalCol}>
+                  <Text style={styles.receiptTotal}>₹{rcpt.total.toFixed(2)}</Text>
+                  <Badge label="Cleared (UPI, simulated)" variant="success" size="sm" />
+                </View>
+              </View>
+
+              <View style={styles.receiptMeta}>
+                <Text style={styles.receiptMetaText}>
+                  🏭 Destination: <Text style={styles.receiptMetaBold}>{rcpt.destinationName || 'Verified Recycler'}</Text>
+                </Text>
+                <Text style={styles.receiptMetaText}>
+                  👤 Origin: <Text style={styles.receiptMetaBold}>{rcpt.householdName || 'Household'}</Text>
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.viewReceiptBtn}
+                onPress={() => setSelectedReceipt(rcpt)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="receipt-outline" size={16} color={Colors.pickerAccent} />
+                <Text style={styles.viewReceiptBtnText}>View Fair Value Receipt</Text>
+              </TouchableOpacity>
+            </Card>
+          ))
+        )}
 
         {/* Income Breakdown by Material */}
         <Card style={styles.breakdownCard}>
@@ -111,6 +165,13 @@ export default function PickerEarningsScreen() {
           </View>
         </Card>
       </ScrollView>
+
+      {/* Fair Value Receipt Modal */}
+      <FairValueReceiptModal
+        visible={!!selectedReceipt}
+        receipt={selectedReceipt}
+        onClose={() => setSelectedReceipt(null)}
+      />
     </View>
   );
 }
@@ -176,4 +237,34 @@ const styles = StyleSheet.create({
   noticeRow: { flexDirection: 'row', gap: Spacing[3], alignItems: 'center' },
   noticeTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.primary },
   noticeBody: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 18, marginTop: 2 },
+  sectionHeader: { marginTop: Spacing[2], marginBottom: Spacing[1] },
+  sectionTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  sectionSubtitle: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
+  receiptCard: { padding: Spacing[4], gap: Spacing[2.5] },
+  receiptHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  receiptNum: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, fontFamily: 'monospace' },
+  receiptSub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
+  receiptTotalCol: { alignItems: 'flex-end', gap: 4 },
+  receiptTotal: { fontSize: FontSize.base, fontWeight: FontWeight.bold, color: Colors.primary },
+  receiptMeta: { backgroundColor: Colors.surfaceAlt, padding: Spacing[2.5], borderRadius: BorderRadius.sm, gap: 4 },
+  receiptMetaText: { fontSize: FontSize.xs, color: Colors.textSecondary },
+  receiptMetaBold: { color: Colors.textPrimary, fontWeight: FontWeight.semibold },
+  viewReceiptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    paddingVertical: Spacing[2.5],
+    backgroundColor: 'rgba(230, 81, 0, 0.08)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(230, 81, 0, 0.25)',
+  },
+  viewReceiptBtnText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color: Colors.pickerAccent,
+  },
+  emptyCard: { padding: Spacing[4], alignItems: 'center' },
+  emptyText: { fontSize: FontSize.xs, color: Colors.textSecondary },
 });
